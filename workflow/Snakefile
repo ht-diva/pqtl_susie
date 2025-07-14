@@ -1,0 +1,31 @@
+from snakemake.utils import min_version
+
+##### set minimum snakemake version #####
+min_version("8.4.1")
+
+
+#containerized: "docker://ghcr.io/ht-diva/pqtl_pipeline:d0d53c1"
+
+configfile: "config/config.yaml"
+
+
+include: "rules/common.smk"
+
+
+rule all:
+    input:
+        expand(ws_path("fm/tmp/{locuseq}_snps.list"), locuseq = data.locuseq),
+        expand(ws_path("fm/tmp/{locuseq}_dosage.tsv"), locuseq = data.locuseq),
+
+
+
+if config.get("run").get("finemapping"):
+
+    include: "rules/finemapping.smk"
+
+
+# rule all:
+#     input:
+#         get_final_output(),
+#     resources:
+#         runtime=3,
