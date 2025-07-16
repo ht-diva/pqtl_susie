@@ -44,9 +44,10 @@ rule extract_dosage:
         bed = lambda wildcards: get_geno(wildcards.locuseq),
         snplist = ws_path("fm/tmp/{locuseq}_snps.list"), #rules.subset_gwas.output.snplist
     output:
-        ws_path("fm/tmp/{locuseq}_dosage.tsv"),
+        dosage=ws_path("fm/tmp/{locuseq}_dosage.raw"),
     params:
         genotype=lambda wildcards, input: input.bed.replace(".bed", ""),
+        ofile=lambda wildcards, output: output.dosage.replace(".raw", ""),
     resources:
         runtime=lambda wc, attempt: 30 + attempt * 10,
     shell:
@@ -57,6 +58,6 @@ rule extract_dosage:
     --keep-allele-order \
     --extract {input.snplist} \
     --recode 'A' \
-    --out {output[0]} \
+    --out {params.ofile} \
     --memory 6000
         """

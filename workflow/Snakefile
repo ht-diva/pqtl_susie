@@ -15,7 +15,7 @@ include: "rules/common.smk"
 rule all:
     input:
         expand(ws_path("fm/tmp/{locuseq}_snps.list"), locuseq = data.locuseq),
-        expand(ws_path("fm/tmp/{locuseq}_dosage.tsv"), locuseq = data.locuseq),
+        expand(ws_path("fm/tmp/{locuseq}_dosage.raw"), locuseq = data.locuseq),
 
 
 
