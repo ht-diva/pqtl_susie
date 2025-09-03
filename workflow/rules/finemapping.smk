@@ -61,3 +61,23 @@ rule extract_dosage:
     --out {params.ofile} \
     --memory 6000
         """
+
+
+rule run_susieR:
+    input:
+        dosage  = rules.extract_dosage.output.dosage,
+        sumstat = ws_path("fm/tmp/{locuseq}_sumstat.csv"),
+    output:
+        cs_summary = ws_path("fm/cs/{locuseq}.cssum"),
+        cs_rds  = ws_path("fm/cs/{locuseq}_fit.rds"),
+        cs_list = ws_path("fm/cs/{locuseq}.cslist"),
+    params:
+        iter=config["susieR"]["iter"],
+        min_abs_corr=config["susieR"]["min_abs_corr"],
+        chrcol = config.get("sumstat").get("chrcol"),
+    resources:
+        runtime=lambda wc, attempt: attempt * 10,
+    conda:
+        "../envs/susier.yml"
+    script:
+        "../scripts/susie_best_practice.R"
