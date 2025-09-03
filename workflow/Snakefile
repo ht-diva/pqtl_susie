@@ -16,10 +16,11 @@ rule all:
     input:
         expand(ws_path("fm/tmp/{locuseq}_snps.list"), locuseq = data.locuseq),
         expand(ws_path("fm/tmp/{locuseq}_dosage.raw"), locuseq = data.locuseq),
+        expand(ws_path("fm/cs/{locuseq}.cslist"), locuseq = data.locuseq),
 
 
 
-if config.get("run").get("finemapping"):
+if config.get("run").get("susier"):
 
     include: "rules/finemapping.smk"
 
