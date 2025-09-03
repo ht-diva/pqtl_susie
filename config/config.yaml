@@ -1,15 +1,14 @@
 run:
- tiledb: False
- ldscore: False
- metal: False
- finemapping: True
- conditional_analysis: False
+  susie: False
+  susier: True
+
+ # The pipe will enable the use of correlation matrix based on LD as specified in link below:
+ # https://stephenslab.github.io/susieR/articles/finemapping_summary_statistics.html
+ # If set to False (default), it will use the genotypes coded with additive model
+ # together with the phenotype to evaluate the RSS model.
 
 
 # paths
-#snpid2filter: "../test/CHRIS/infoscore_HRC_pQTL_harmonized_snpid.csv"
-sumstats_path: config/path.txt
-dest_path: "../test/destination"
 workspace_path: "test/results"
 path_lb: "config/loci.csv"
 path_gwas: "/exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats_digits_not_flipped_filtered/output"
@@ -17,21 +16,14 @@ genotype: "/scratch/giulia.pontali/genomics_QC_pipeline/results_scratch/bed/qc_r
 
 
 sumstat:
- pvalcol: "MLOG10P"
- snpcol: "SNPID"
- pthr: 1.7e-11
- annotate: False
+  pvalcol: "MLOG10P"
+  snpcol: "SNPID"
+  chrcol: "##CHR"
 
-
-## Genotype position definition
-genodata:
- json: "config/genetic_data.json"
- name: "INTERVAL"
- my_geno: "/exchange/healthds/pQTL/INTERVAL/Genetic_QC_files/pgen/qc_recoded_harmonised/impute_recoded_selected_sample_filter_hq_var_new_id_alleles_22.pgen"
 
 
 # Phenotype file used in the GWAS
-# -------------------------------
+# ============================= #
 # tab separated.
 # First two colums should be FID and IID
 #pheno_file: "data/INTERVAL_NonImp_residuals_final.txt"
@@ -39,34 +31,8 @@ genodata:
 #sample_file: "data/samplelist.csv"
 
 
-# Clumping
-# --------
-# NB: logp1 and logp2 will only work with plink2
-clumping:
- # logp1: 10.769551078621726
- logp1: 7.3
- logp2: 1.3010299956639813
- r2: 0.1
- kb: 10000
- p1: 1.7e-11
- p2: 0.05
- totsize: 1e6
-
-
 # SusieR parameters
-# -----------------
 susieR:
- # The following parameter will enable the use of correlation matrix based
- # on LD as specified in [https://stephenslab.github.io/susieR/articles/finemapping_summary_statistics.html](https://stephenslab.github.io/susieR/articles/finemapping_summary_statistics.html)
- # If set to False (default), it will use the genotypes coded with additive model
- # together with the phenotype to evaluate the RSS model.
- use_ld: False
- # When using this pipeline on CHRIS samples, the IDs
- # have leading zeros, and will have a total length of 10 characters.
- # Thus within the `scripts/finemapping.R` will do a conversion
- # with for zero padding of the IDs to match the ones in the genotypes.
- # Set this value to `False` for remove 0 padding to 10 character.
- chris_id: False
  min_abs_corr: 0.1
  iter: 1000
  extension: 0
