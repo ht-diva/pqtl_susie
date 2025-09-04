@@ -93,4 +93,4 @@ rule collect_credible_sets:
     resources:
         runtime=lambda wc, attempt: 10 + attempt * 10,
     script:
-        "../scripts/s04_collect_credible_sets.R"
+        "../scripts/combine_cs_lists.R"
