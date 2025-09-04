@@ -24,31 +24,11 @@ set-threads:
     harmonize_sumstats: *cores
     bgzip_tabix: *cores
 set-resources:
-    harmonize_sumstats:
-        mem_mb: 22528 + attempt * 2048
+    extract_dosage:
+        mem_mb: 8000 + attempt * 2048
         threads: *cores
-    summarize_sumstats:
-      mem_mb: 6144 + attempt * 2048
-    annotate_sumstats:
-        mem_mb: 18432 + attempt * 2048
+    run_susieR:
+        mem_mb: 8000 + attempt * 2048
         threads: *cores
-    bgzip_tabix:
-        threads: *cores
-    convert_sumstats_to_metal:
-        mem_mb: 18432 + attempt * 2048
-    munge_sumstats:
-        mem_mb: 14336 + attempt * 2048
-    compute_ldscore:
-        mem_mb: 12288 + attempt * 2048
-    convert_sumstats_to_vcf:
-        mem_mb: 18432 + attempt * 2048
-    sumstat_2_plink:
-        mem_mb: 12288 + attempt * 2048
-    clumping:
-        mem_mb: 16384 + attempt * 2048
-    enlarge_and_merge:
-        mem_mb: 14336 + attempt * 2048
-    collect_by_pheno:
-      mem_mb: 12288 + attempt * 2048
-    collect_all:
-      mem_mb: 12288 + attempt * 2048
+    collect_credible_sets:
+        mem_mb: 4000 + attempt * 2048
