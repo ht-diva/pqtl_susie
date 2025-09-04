@@ -76,8 +76,21 @@ rule run_susieR:
         min_abs_corr=config["susieR"]["min_abs_corr"],
         chrcol = config.get("sumstat").get("chrcol"),
     resources:
-        runtime=lambda wc, attempt: attempt * 10,
+        runtime=lambda wc, attempt: 60 + attempt * 60,
     conda:
         "../envs/susier.yml"
     script:
         "../scripts/susie_best_practice.R"
+
+
+rule collect_credible_sets:
+    input:
+        expand(ws_path("fm/cs/{locuseq}.cslist"), locuseq = data.locuseq),
+    output:
+        ofile = ws_path("fm/collected_credible_sets.tsv"),
+    conda:
+        "../envs/susier.yml"
+    resources:
+        runtime=lambda wc, attempt: 10 + attempt * 10,
+    script:
+        "../scripts/s04_collect_credible_sets.R"
