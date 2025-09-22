@@ -41,23 +41,23 @@ rule subset_gwas:
 
 rule extract_dosage:
     input:
-        bed = lambda wildcards: get_geno(wildcards.locuseq),
+        pgen = lambda wildcards: get_geno(wildcards.locuseq),
         snplist = ws_path("fm/tmp/{locuseq}_snps.list"), #rules.subset_gwas.output.snplist
     output:
-        dosage=ws_path("fm/tmp/{locuseq}_dosage.raw"),
+        dosage=ws_path("fm/tmp/{locuseq}_dosage.pgen"),
     params:
-        genotype=lambda wildcards, input: input.bed.replace(".bed", ""),
-        ofile=lambda wildcards, output: output.dosage.replace(".raw", ""),
+        genotype=lambda wildcards, input: input.pgen.replace(".pgen", ""),
+        ofile=lambda wildcards, output: output.dosage.replace(".pgen", ""),
     resources:
         runtime=lambda wc, attempt: 30 + attempt * 10,
     shell:
         """
     source /exchange/healthds/singularity_functions
 
-    plink --bfile {params.genotype} \
+    plink2 --pfile {params.genotype} \
     --keep-allele-order \
     --extract {input.snplist} \
-    --recode 'A' \
+    --make-pgen \
     --out {params.ofile} \
     --memory 6000
         """

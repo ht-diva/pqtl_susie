@@ -35,5 +35,5 @@ def get_gwas(wildcards):
 def get_geno(wildcards):
     chrom = data.loc[wildcards, "chr"]
     path = config.get("genotype")
-    filename = f"{path}{chrom}.bed"
+    filename = f"{path}{chrom}.pgen"
     return str(Path(filename))
