@@ -150,7 +150,7 @@ n        <- min(sumstat$N, na.rm = TRUE)
 geno_matrix <- as.matrix(dosage[, common_snps])
 
 # Compute LD correlation matrix
-R <- cor(geno_matrix, use = "pairwise.complete.obs")
+R <- cor(geno_matrix, use = "pairwise")
 message("✅ Computed LD correlation matrix of dimension: ", nrow(R), "x", ncol(R))
 
 # ---------- Run SuSiE RSS ----------
@@ -244,11 +244,15 @@ cs_details <- full_res$cs %>%
 
 # list of CS variants
 cs_list <- cs_summary %>%
-  summarize(cs_snps = paste0(unique(SNP), collapse = ","), .by = "cs_id") %>%
-  full_join(cs_details, ., by = "cs_id") %>%
+  summarize(
+    cs_snps = paste0(unique(SNP), collapse = ","), 
+    .by = c("seqid", "locus", "cs_id") # keep seqid and locus in CS list
+    ) %>%
+  full_join(cs_details, ., join_by(seqid, locus, cs_id)) %>%
   relocate(seqid, locus, cs_id, cs_log10bf, cs_avg_r2, cs_min_r2, cs_snps)
 
 
 write.table(cs_list, file = out_cs_list, sep = "\t", row.names = F, quote = F)
+
 message("✅ Saved credible set list to: ", out_cs_list)
 message("✅ Analysis done!")
