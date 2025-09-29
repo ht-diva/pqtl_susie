@@ -3,6 +3,17 @@
 # SuSiE Fine-mapping Input Loader
 # =============================
 
+# Get log path from Snakemake, fallback if missing
+log_file <- tryCatch(snakemake@log[[1]], error = function(e) "logs/susieR/default.log")
+
+# Ensure the directory exists
+dir.create(dirname(log_file), recursive = TRUE, showWarnings = FALSE)
+
+# Redirect stdout and stderr to the log file
+log_con <- file(log_file, open = "wt")
+sink(log_con, type = "output")   # redirect stdout
+sink(log_con, type = "message")  # redirect messages / stderr
+
 
 # ---------- Load libraries ----------
 
@@ -291,3 +302,8 @@ message("✅ Saved credible set list to: ", out_cs_list)
 message("✅ Analysis done!")
 
 
+#-------------# 
+# Reset sinks at the end
+sink(type = "message")
+sink(type = "output")
+close(log_con)

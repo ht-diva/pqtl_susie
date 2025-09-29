@@ -71,6 +71,8 @@ rule run_susieR:
         cs_summary = ws_path("fm/cs/{locuseq}.cssum"),
         cs_rds  = ws_path("fm/cs/{locuseq}_fit.rds"),
         cs_list = ws_path("fm/cs/{locuseq}.cslist"),
+    log:
+        ws_path("logs/susieR/{locuseq}.log"),
     params:
         iter=config["susieR"]["iter"],
         min_abs_corr=config["susieR"]["min_abs_corr"],
