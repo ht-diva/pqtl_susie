@@ -8,6 +8,7 @@ suppressPackageStartupMessages({
   library(stringr)
   library(data.table)  # For fast I/O
   library(susieR)
+  library(pgenlibr) # to load PGEN file
 })
 
 
@@ -15,10 +16,12 @@ suppressPackageStartupMessages({
 proj_path <- "/scratch/dariush.ghasemi/projects/pqtl_susie/"
 
 #path_sumstat <- glue(proj_path, "test/results/fm/tmp/seq.8221.19_22_24234172_24401503_sumstat.csv")
-#path_dosage  <- glue(proj_path, "test/results/fm/tmp/seq.8221.19_22_24234172_24401503_dosage.tsv")
-path_sumstat <- snakemake@input[["sumstat"]]
-path_dosage  <- snakemake@input[["dosage"]]
+#path_pgen <- glue(proj_path, "results/test/fm/tmp/seq.8221.19_22_24234172_24401503.pgen")
 
+path_sumstat <- snakemake@input[["sumstat"]]
+path_pgen <- snakemake@input[["dosage"]]
+path_pvar <- gsub(".pgen", ".pvar", path_pgen)
+path_psam <- gsub(".pgen", ".psam", path_pgen)
 
 # Load parameters for susieR model
 label_chr <- snakemake@params[["chrcol"]]
@@ -58,9 +61,12 @@ is_strand_ambiguous <- function(a1, a2) {
 
 
 check_file(path_sumstat)
-check_file(path_dosage)
+check_file(path_pgen)
+
+
 
 # ---------- Load Data ----------
+
 # Use fread with explicit arguments to avoid surprises
 sumstat <- tryCatch({
   fread(path_sumstat, header = TRUE, sep = "\t", data.table = FALSE)
@@ -69,12 +75,21 @@ sumstat <- tryCatch({
 })
 
 dosage <- tryCatch({
-  fread(path_dosage, header = TRUE, sep = " ", data.table = FALSE)
+  # Read psam and pvar
+  psam_df <- read.delim(path_psam, header = TRUE, comment.char = "")
+  pvar_df <- read.delim(path_pvar, header = TRUE, comment.char = "")
+  
+  # Read pgen
+  pvar <- pgenlibr::NewPvar(path_pvar)
+  pgen <- pgenlibr::NewPgen(path_pgen, pvar=pvar)
 }, error = function(e) {
   stop("❌ Failed to read dosage file: ", e$message)
 })
 
+
+
 # ---------- Basic QC ----------
+
 # rename colum name
 colnames(sumstat)[which(names(sumstat) == label_chr)] <- "CHR"
 
@@ -82,20 +97,29 @@ colnames(sumstat)[which(names(sumstat) == label_chr)] <- "CHR"
 required_sumstat_cols <- c("SNPID", "CHR", "POS", "EA", "NEA", "BETA", "SE", "MLOG10P")
 missing_cols <- setdiff(required_sumstat_cols, colnames(sumstat))
 
-# Remove effective allele from column names
-dosage <- dosage %>% dplyr::rename_with(~ str_remove(., "_[ATCG]+$"), matches("_[ATCG]+$"))
-
-# Store variants list for the match; remove FID, IID, ..., PHENOTYPE columns
-genotype_variants <- names(dosage)[7:ncol(dosage)]
-
 if (length(missing_cols) > 0) {
   stop("❌ Missing required columns in sumstat file: ", paste(missing_cols, collapse = ", "))
 }
 
+#-------------# 
+# Check the number of variants and samples
+n_variants <- pgenlibr::GetVariantCt(pgen)
+n_samples  <- pgenlibr::GetRawSampleCt(pgen)
+
+# Extract dosages for all of variants
+dosage <- pgenlibr::ReadList(pgen, 1:n_variants, meanimpute = FALSE)
+
+# Add variant IDs as column names
+colnames(dosage) <- pvar_df$ID
+
+# Add sample IDs as row names
+rownames(dosage) <- psam_df$IID
+
+
 message("✅ Summary stats and dosage files loaded successfully.")
 
 # ---------- Variant Matching (to avoid allele mismatch) ----------
-common_snps <- intersect(sumstat$SNPID, genotype_variants)
+common_snps <- intersect(sumstat$SNPID, pvar_df$ID)
 
 if (length(common_snps) == 0) {
   stop("❌ No overlapping SNPs between sumstat and dosage files.")
@@ -105,7 +129,7 @@ message("✅ Overlapping SNPs found: ", length(common_snps))
 
 # Optional: subset both datasets to common SNPs
 sumstat <- sumstat[sumstat$SNPID %in% common_snps, ]
-#X <- dosage[, common_snps]
+X <- dosage[, common_snps] %>% as.matrix()
 
 message("✅ Subsetted to common SNPs. Ready for SuSiE.")
 
@@ -140,6 +164,8 @@ message("✅ Subsetted to common SNPs. Ready for SuSiE.")
 
 #stopifnot(all(merged$SNP == dosage$SNP)) # safety check
 
+
+
 # ---------- Prepare Inputs for SuSiE ----------
 betas    <- sumstat$BETA
 se_betas <- sumstat$SE
@@ -147,10 +173,9 @@ n        <- min(sumstat$N, na.rm = TRUE)
 
 # Extract only genotype dosage columns (assume first column = SNP, rest = genotypes)
 #geno_matrix <- as.matrix(dosage[, !colnames(dosage) %in% c("SNP","A1","A2")])
-geno_matrix <- as.matrix(dosage[, common_snps])
 
 # Compute LD correlation matrix
-R <- cor(geno_matrix, use = "pairwise")
+R <- cor(X, use = "pairwise")
 message("✅ Computed LD correlation matrix of dimension: ", nrow(R), "x", ncol(R))
 
 # ---------- Run SuSiE RSS ----------
