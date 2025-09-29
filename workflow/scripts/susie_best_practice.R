@@ -3,6 +3,13 @@
 # SuSiE Fine-mapping Input Loader
 # =============================
 
+
+# ---------- Load libraries ----------
+
+if (!requireNamespace("susieR", quietly = TRUE)) {
+  install.packages("susieR", repos = "https://cloud.r-project.org", lib = .libPaths()[2])
+}
+
 suppressPackageStartupMessages({
   library(dplyr)
   library(stringr)
@@ -13,7 +20,7 @@ suppressPackageStartupMessages({
 
 
 # ---------- User Inputs ----------
-proj_path <- "/scratch/dariush.ghasemi/projects/pqtl_susie/"
+#proj_path <- "/scratch/dariush.ghasemi/projects/pqtl_susie/"
 
 #path_sumstat <- glue(proj_path, "test/results/fm/tmp/seq.8221.19_22_24234172_24401503_sumstat.csv")
 #path_pgen <- glue(proj_path, "results/test/fm/tmp/seq.8221.19_22_24234172_24401503.pgen")
@@ -78,14 +85,14 @@ dosage <- tryCatch({
   # Read psam and pvar
   psam_df <- read.delim(path_psam, header = TRUE, comment.char = "")
   pvar_df <- read.delim(path_pvar, header = TRUE, comment.char = "")
-  
-  # Read pgen
-  pvar <- pgenlibr::NewPvar(path_pvar)
-  pgen <- pgenlibr::NewPgen(path_pgen, pvar=pvar)
-}, error = function(e) {
-  stop("❌ Failed to read dosage file: ", e$message)
-})
 
+  # Read pgen
+  #pvar <- pgenlibr::NewPvar(path_pvar)
+  pgen <- NewPgen(path_pgen) #, pvar=pvar
+  
+  }, error = function(e) {
+    stop("❌ Failed to read dosage file: ", e$message)
+})
 
 
 # ---------- Basic QC ----------
@@ -252,6 +259,7 @@ if (length(cs$cs) == 0) {
     saveRDS(res_rss, file = out_cs_rds)
     
     message("✅ Saved credible set results to: ", out_cs_summary)
+    message("✅ Saved SuSiE full summary to: ", out_cs_rds)
 }
 
 # full model summary
@@ -281,3 +289,5 @@ write.table(cs_list, file = out_cs_list, sep = "\t", row.names = F, quote = F)
 
 message("✅ Saved credible set list to: ", out_cs_list)
 message("✅ Analysis done!")
+
+
