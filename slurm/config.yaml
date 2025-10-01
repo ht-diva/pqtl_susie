@@ -14,6 +14,7 @@ rerun-incomplete: False
 printshellcmds: True
 scheduler: ilp
 
+
 default-resources:
     slurm_partition: cpuq
     # slurm_account: ${USER}
@@ -28,7 +29,7 @@ set-resources:
         mem_mb: 8000 + attempt * 2048
         threads: *cores
     run_susieR:
-        mem_mb: 8000 + attempt * 2048
+        mem_mb: 500 + attempt * 2048
         threads: *cores
     collect_credible_sets:
         mem_mb: 4000 + attempt * 2048
