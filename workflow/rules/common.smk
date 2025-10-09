@@ -9,10 +9,10 @@ lb = pd.read_csv(config["path_lb"])
 
 # Create a new column by concatenating 
 lb["locus"]  = lb["chr"].astype(str) + "_" + lb["start"].astype(str) + "_" + lb["end"].astype(str)
-lb["locuseq"] = lb["phenotype_id"].astype(str) + "_" + lb["locus"].astype(str)
+lb["locuseq"] = lb["seqid"].astype(str) + "_" + lb["locus"].astype(str)
 
 data = (
-    pd.DataFrame(lb, columns=["locuseq", "phenotype_id", "chr", "locus", "SNPID"])
+    pd.DataFrame(lb, columns=["locuseq", "seqid", "chr", "locus", "SNPID"])
     .set_index("locuseq", drop=False)
     .sort_index()
 )
@@ -27,7 +27,7 @@ def get_locus(wildcards):
 
 # return GWAS summary results 
 def get_gwas(wildcards):
-    seqid = data.loc[wildcards, "phenotype_id"]
+    seqid = data.loc[wildcards, "seqid"]
     file_path = f"{seqid}/{seqid}.gwaslab.tsv.bgz"
     return str(Path(config.get("path_gwas"), file_path))
 
