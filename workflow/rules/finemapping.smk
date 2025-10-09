@@ -4,8 +4,8 @@ rule subset_gwas:
     input:
         gwas = lambda wildcards: get_gwas(wildcards.locuseq),
     output:
-        sumstat = ws_path("fm/tmp/{locuseq}_sumstat.csv"),
-        snplist = ws_path("fm/tmp/{locuseq}_snps.list"),
+        sumstat = ws_path("tmp/{locuseq}_sumstat.csv"),
+        snplist = ws_path("tmp/{locuseq}_snps.list"),
     params:
         locus = lambda wildcards: get_locus(wildcards.locuseq),
         prefix = "{locuseq}",
@@ -42,9 +42,9 @@ rule subset_gwas:
 rule extract_dosage:
     input:
         pgen = lambda wildcards: get_geno(wildcards.locuseq),
-        snplist = ws_path("fm/tmp/{locuseq}_snps.list"), #rules.subset_gwas.output.snplist
+        snplist = ws_path("tmp/{locuseq}_snps.list"), #rules.subset_gwas.output.snplist
     output:
-        dosage=ws_path("fm/tmp/{locuseq}_dosage.pgen"),
+        dosage=ws_path("tmp/{locuseq}_dosage.pgen"),
     params:
         genotype=lambda wildcards, input: input.pgen.replace(".pgen", ""),
         ofile=lambda wildcards, output: output.dosage.replace(".pgen", ""),
@@ -66,12 +66,12 @@ rule extract_dosage:
 rule run_susieR:
     input:
         dosage  = rules.extract_dosage.output.dosage,
-        sumstat = ws_path("fm/tmp/{locuseq}_sumstat.csv"),
+        sumstat = ws_path("tmp/{locuseq}_sumstat.csv"),
     output:
-        data_report = ws_path("fm/cs/{locuseq}.report"),
-        cs_summary = ws_path("fm/cs/{locuseq}.cssum"),
-        cs_rds  = ws_path("fm/cs/{locuseq}_fit.rds"),
-        cs_list = ws_path("fm/cs/{locuseq}.cslist"),
+        data_report = ws_path("susierss/cs_report/{locuseq}.report"),
+        cs_summary = ws_path("susierss/cs_summary/{locuseq}.cssum"),
+        cs_rds  = ws_path("susierss/cs_fitness/{locuseq}_fit.rds"),
+        cs_list = ws_path("susierss/cs_list/{locuseq}.cslist"),
     log:
         ws_path("logs/susieR/{locuseq}.log"),
     params:
@@ -88,9 +88,9 @@ rule run_susieR:
 
 rule collect_credible_sets:
     input:
-        expand(ws_path("fm/cs/{locuseq}.cslist"), locuseq = data.locuseq),
+        expand(ws_path("susierss/cs_list/{locuseq}.cslist"), locuseq = data.locuseq),
     output:
-        ofile = ws_path("fm/collected_credible_sets.tsv"),
+        ofile = ws_path("susierss/collected_credible_sets.tsv"),
     conda:
         "../envs/susier.yml"
     resources:

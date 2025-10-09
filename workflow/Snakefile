@@ -14,10 +14,10 @@ include: "rules/common.smk"
 
 rule all:
     input:
-        #expand(ws_path("fm/tmp/{locuseq}_snps.list"), locuseq = data.locuseq),
-        expand(ws_path("fm/tmp/{locuseq}_dosage.pgen"), locuseq = data.locuseq),
-        #expand(ws_path("fm/cs/{locuseq}.cslist"), locuseq = data.locuseq),
-        ws_path("fm/collected_credible_sets.tsv"),
+        #expand(ws_path("tmp/{locuseq}_snps.list"), locuseq = data.locuseq),
+        #expand(ws_path("tmp/{locuseq}_dosage.pgen"), locuseq = data.locuseq),
+        #expand(ws_path("susierss/cs_list/{locuseq}.cslist"), locuseq = data.locuseq),
+        ws_path("susierss/collected_credible_sets.tsv"),
 
 
 
