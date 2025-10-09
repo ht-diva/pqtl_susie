@@ -219,6 +219,21 @@ n        <- min(sumstat$N, na.rm = TRUE)
 R <- cor(X, use = "pairwise")
 message("✅ Computed LD correlation matrix of dimension: ", nrow(R), "x", ncol(R))
 
+# Check Cholesky factorization of a real symmetric positive-definite square matrix.
+positive_semi_definite <- TRUE
+
+tryCatch({
+  chol(R)
+}, error = function(e) {
+  positive_semi_definite <- FALSE
+})
+
+
+if (!positive_semi_definite) {
+  stop("The LD matrix is not positive semi-definite.")
+}
+
+message("✅ Computed LD correlation matrix is positive semi-definite.")
 
 # ---------- Run SuSiE RSS ----------
 res_rss <- tryCatch(
