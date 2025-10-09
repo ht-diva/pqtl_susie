@@ -48,6 +48,7 @@ susie_iter <- snakemake@params[["iter"]]
 #susie_iter <- 1000
 #susie_min_abs_cor <- 0.0
 
+out_data_report <- snakemake@output[["data_report"]]
 out_cs_summary <- snakemake@output[["cs_summary"]]
 out_cs_list <- snakemake@output[["cs_list"]]
 out_cs_rds <- snakemake@output[["cs_rds"]]
@@ -92,15 +93,18 @@ sumstat <- tryCatch({
   stop("❌ Failed to read sumstat file: ", e$message)
 })
 
-dosage <- tryCatch({
-  # Read psam and pvar
-  psam_df <- read.delim(path_psam, header = TRUE, comment.char = "")
-  pvar_df <- read.delim(path_pvar, header = TRUE, comment.char = "")
+# number of SNPs in GWAS results subset
+n_snp_sumstat <- nrow(sumstat)
 
+# Read psam and pvar
+psam_df <- read.delim(path_psam, header = TRUE, comment.char = "")
+pvar_df <- read.delim(path_pvar, header = TRUE, comment.char = "")
+
+# Read pgen
+pgen <- tryCatch({
   # Read pgen
   #pvar <- pgenlibr::NewPvar(path_pvar)
-  pgen <- NewPgen(path_pgen) #, pvar=pvar
-  
+  NewPgen(path_pgen) #, pvar=pvar
   }, error = function(e) {
     stop("❌ Failed to read dosage file: ", e$message)
 })
@@ -108,7 +112,7 @@ dosage <- tryCatch({
 
 # ---------- Basic QC ----------
 
-# rename colum name
+# rename column name
 colnames(sumstat)[which(names(sumstat) == label_chr)] <- "CHR"
 
 # Check mandatory columns in summary stats
@@ -138,12 +142,13 @@ message("✅ Summary stats and dosage files loaded successfully.")
 
 # ---------- Variant Matching (to avoid allele mismatch) ----------
 common_snps <- intersect(sumstat$SNPID, pvar_df$ID)
+n_common_snps <- length(common_snps)
 
-if (length(common_snps) == 0) {
+if (n_common_snps == 0) {
   stop("❌ No overlapping SNPs between sumstat and dosage files.")
 }
 
-message("✅ Overlapping SNPs found: ", length(common_snps))
+message("✅ Overlapping SNPs found: ", n_common_snps)
 
 # Optional: subset both datasets to common SNPs
 sumstat <- sumstat[sumstat$SNPID %in% common_snps, ]
@@ -182,6 +187,24 @@ message("✅ Subsetted to common SNPs. Ready for SuSiE.")
 
 #stopifnot(all(merged$SNP == dosage$SNP)) # safety check
 
+# ---------- Reporting Counts ----------
+
+#extract seqid_locus compound
+locuseq <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
+
+# reporting numbers of input data 
+data_counts <- data.frame(
+  "locuseq"       = locuseq,
+  "n_snp_pgen"    = n_variants,
+  "n_snp_gwas"    = n_snp_sumstat,
+  "n_snp_shared"  = n_common_snps,
+  "n_sample_pgen" = n_samples
+)
+
+# saving the report
+write.table(data_counts, file = out_data_report, sep = "\t", row.names = F, quote = F)
+
+message("✅ Saved  input characteristics  to : ", out_data_report)
 
 
 # ---------- Prepare Inputs for SuSiE ----------
@@ -195,6 +218,7 @@ n        <- min(sumstat$N, na.rm = TRUE)
 # Compute LD correlation matrix
 R <- cor(X, use = "pairwise")
 message("✅ Computed LD correlation matrix of dimension: ", nrow(R), "x", ncol(R))
+
 
 # ---------- Run SuSiE RSS ----------
 res_rss <- tryCatch(
@@ -223,7 +247,6 @@ if (length(cs$cs) == 0) {
   } else {
   
     # extract seqid and locus tag from filename (helps concatenation later)
-    locuseq <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
     tag_seqid <- sub("_.*$", "", locuseq)
     tag_locus <- sub("^seq\\.\\d+\\.\\d+_", "chr", locuseq)
     

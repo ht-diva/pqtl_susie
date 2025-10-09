@@ -68,6 +68,7 @@ rule run_susieR:
         dosage  = rules.extract_dosage.output.dosage,
         sumstat = ws_path("fm/tmp/{locuseq}_sumstat.csv"),
     output:
+        data_report = ws_path("fm/cs/{locuseq}.report"),
         cs_summary = ws_path("fm/cs/{locuseq}.cssum"),
         cs_rds  = ws_path("fm/cs/{locuseq}_fit.rds"),
         cs_list = ws_path("fm/cs/{locuseq}.cslist"),
