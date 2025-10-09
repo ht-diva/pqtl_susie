@@ -9,10 +9,10 @@ run:
 
 
 # paths
-workspace_path: "test/results"
-path_lb: "config/loci.csv"
+workspace_path: "results/VTN"
+path_lb: "config/VTN_loci.csv"
 path_gwas: "/exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats_digits_not_flipped_filtered/output"
-genotype: "/scratch/giulia.pontali/genomics_QC_pipeline/results_scratch/bed/qc_recoded_harmonised/impute_recoded_selected_sample_filter_hq_var_new_id_alleles_"
+genotype: "/scratch/giulia.pontali/genomics_QC_pipeline/results_scratch/pgen/qc_recoded_harmonised/impute_recoded_selected_sample_filter_hq_var_new_id_alleles_"
 
 
 sumstat:
