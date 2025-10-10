@@ -14,8 +14,9 @@ log_con <- file(log_file, open = "wt")
 sink(log_con, type = "output")   # redirect stdout
 sink(log_con, type = "message")  # redirect messages / stderr
 
-
-# ---------- Load libraries ----------
+#----------------------------------------#
+# ------       Load libraries      ------
+#----------------------------------------#
 
 suppressPackageStartupMessages({
   library(dplyr)
@@ -26,8 +27,9 @@ suppressPackageStartupMessages({
   library(Rfast) #to calculate correlation matrix faster
 })
 
-
-# ---------- User Inputs ----------
+#----------------------------------------#
+# -----         User Inputs        ------
+#----------------------------------------#
 #proj_path <- "/scratch/dariush.ghasemi/projects/pqtl_susie/"
 
 #path_sumstat <- glue(proj_path, "test/results/fm/tmp/seq.8221.19_22_24234172_24401503_sumstat.csv")
@@ -50,7 +52,10 @@ out_cs_summary <- snakemake@output[["cs_summary"]]
 out_cs_list <- snakemake@output[["cs_list"]]
 out_cs_rds <- snakemake@output[["cs_rds"]]
 
-# ---------- Helper Functions ----------
+#----------------------------------------#
+# -------     Helper Functions     ------
+#----------------------------------------#
+
 err_handling <- function(e) { stop("❌ SuSiE failed: ", e$message) }
 
 check_file <- function(path, min_size = 1e3) {
@@ -80,8 +85,9 @@ check_file(path_sumstat)
 check_file(path_pgen)
 
 
-
-# ---------- Load Data ----------
+#----------------------------------------#
+# ------         Load Data        -------
+#----------------------------------------#
 
 # Use fread with explicit arguments to avoid surprises
 sumstat <- tryCatch({
@@ -106,9 +112,9 @@ pgen <- tryCatch({
     stop("❌ Failed to read dosage file: ", e$message)
 })
 
-
-# ---------- Basic QC ----------
-
+#----------------------------------------#
+# --------       Basic QC         -------
+#----------------------------------------#
 # rename column name
 colnames(sumstat)[which(names(sumstat) == label_chr)] <- "CHR"
 
@@ -137,7 +143,11 @@ rownames(dosage) <- psam_df$IID
 
 message("✅ Summary stats and dosage files loaded successfully.")
 
-# ---------- Variant Matching (to avoid allele mismatch) ----------
+#----------------------------------------#
+# -------     Variant Matching     ------
+#----------------------------------------#
+
+# to avoid allele mismatch
 common_snps <- intersect(sumstat$SNPID, pvar_df$ID)
 n_common_snps <- length(common_snps)
 
@@ -153,7 +163,9 @@ X <- dosage[, common_snps] %>% as.matrix()
 
 message("✅ Subsetted to common SNPs. Ready for SuSiE.")
 
+#----------------------------------------#
 # ---------- Allele Alignment ----------
+#----------------------------------------#
 
 # Ensure alleles are aligned between summary stats and dosage
 # Assume dosage file has A1 (effect) and A2 (other) columns if available
@@ -184,7 +196,9 @@ message("✅ Subsetted to common SNPs. Ready for SuSiE.")
 
 #stopifnot(all(merged$SNP == dosage$SNP)) # safety check
 
-# ---------- Reporting Counts ----------
+#----------------------------------------#
+# ------      Reporting Counts      -----
+#----------------------------------------#
 
 #extract seqid_locus compound
 locuseq <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
@@ -204,13 +218,9 @@ write.table(data_counts, file = out_data_report, sep = "\t", row.names = F, quot
 message("✅ Saved  input characteristics  to : ", out_data_report)
 
 
-# ---------- Prepare Inputs for SuSiE ----------
-betas    <- sumstat$BETA
-se_betas <- sumstat$SE
-n        <- min(sumstat$N, na.rm = TRUE)
-
-# Extract only genotype dosage columns (assume first column = SNP, rest = genotypes)
-#geno_matrix <- as.matrix(dosage[, !colnames(dosage) %in% c("SNP","A1","A2")])
+#----------------------------------------#
+# -----      Compute LD matrix     ------
+#----------------------------------------#
 
 # Compute LD correlation matrix
 R <- cor(X, use = "pairwise")
@@ -232,7 +242,18 @@ if (!positive_semi_definite) {
 
 message("✅ Computed LD correlation matrix is positive semi-definite.")
 
-# ---------- Run SuSiE RSS ----------
+#----------------------------------------#
+# -----  Prepare Inputs for SuSiE   -----
+#----------------------------------------#
+
+betas    <- sumstat$BETA
+se_betas <- sumstat$SE
+n        <- min(sumstat$N, na.rm = TRUE)
+
+#----------------------------------------#
+# -------      Run SuSiE RSS      -------
+#----------------------------------------#
+
 res_rss <- tryCatch(
   susie_rss(
     bhat = betas,
@@ -247,7 +268,9 @@ res_rss <- tryCatch(
 
 message("🎉 SuSiE RSS completed successfully.")
 
-# ---------- Extract & Save Results ----------
+#----------------------------------------#
+# -----    Extract & Save Results  ------
+#----------------------------------------#
 
 # Credible sets
 cs <- susie_get_cs(res_rss, X = NULL)
