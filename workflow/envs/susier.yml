@@ -5,7 +5,7 @@ channels:
   - defaults
 dependencies:
   - r-base=4.5
-  # - r-susier=0.12.35
+  - r-susier=0.14.2
   - r-tidyverse
   - r-dplyr
   - r-stringr
@@ -14,6 +14,7 @@ dependencies:
   - r-ggplot2
   - r-ggpubr
   - r-data.table
+  - r-rfast=2.1.5.1
   - r-markdown
   - r-pgenlibr=0.5.3
 

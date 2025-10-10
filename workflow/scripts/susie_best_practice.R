@@ -17,16 +17,13 @@ sink(log_con, type = "message")  # redirect messages / stderr
 
 # ---------- Load libraries ----------
 
-if (!requireNamespace("susieR", quietly = TRUE)) {
-  install.packages("susieR", repos = "https://cloud.r-project.org", lib = .libPaths()[2])
-}
-
 suppressPackageStartupMessages({
   library(dplyr)
   library(stringr)
   library(data.table)  # For fast I/O
   library(susieR)
   library(pgenlibr) # to load PGEN file
+  library(Rfast) #to calculate correlation matrix faster
 })
 
 
