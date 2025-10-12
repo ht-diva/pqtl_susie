@@ -79,7 +79,7 @@ rule run_susieR:
         min_abs_corr=config["susieR"]["min_abs_corr"],
         chrcol = config.get("sumstat").get("chrcol"),
     resources:
-        runtime=lambda wc, attempt: 180 + attempt * 60,
+        runtime=lambda wc, attempt: 300 + attempt * 60,
     conda:
         "../envs/susier.yml"
     script:
