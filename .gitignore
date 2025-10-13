@@ -8,10 +8,10 @@ archive/
 results/
 test/
 logs/
+tiledb/
 
 *.log
 dag.png
 
 # loci file
-config/loci.csv
-config/locus.csv
+config/*.csv
