@@ -12,7 +12,7 @@ lb["locus"]  = lb["chr"].astype(str) + "_" + lb["start"].astype(str) + "_" + lb[
 lb["locuseq"] = lb["seqid"].astype(str) + "_" + lb["locus"].astype(str)
 
 data = (
-    pd.DataFrame(lb, columns=["locuseq", "seqid", "chr", "locus", "SNPID"])
+    pd.DataFrame(lb, columns=["locuseq", "seqid", "chr", "locus", "SNPID", "gwas_path"])
     .set_index("locuseq", drop=False)
     .sort_index()
 )
@@ -28,8 +28,10 @@ def get_locus(wildcards):
 # return GWAS summary results 
 def get_gwas(wildcards):
     seqid = data.loc[wildcards, "seqid"]
-    file_path = f"{seqid}/{seqid}.gwaslab.tsv.bgz"
-    return str(Path(config.get("path_gwas"), file_path))
+    #file_path = f"{seqid}/{seqid}.gwaslab.tsv.bgz"
+    file_path = data.loc[wildcards, "gwas_path"]
+    #return str(Path(config.get("path_gwas"), file_path))
+    return str(Path(file_path))
 
 # return genotype
 def get_geno(wildcards):
