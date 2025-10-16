@@ -52,3 +52,30 @@ EOF
 
         echo "YAML file created: {output.qyaml}"
         """
+
+
+rule query_gwas:
+    input:
+        qregion = ws_path("tmp/{locuseq}_region.tsv"),
+        qyaml = ws_path("tmp/{locuseq}_query.yaml"),
+    output:
+        sumstat = ws_path("tmp/{locuseq}/{locuseq}_sumstat.csv.gz")
+    #conda:
+    #    "envs/environment.yml"
+    params:
+        prefix=lambda wildcards, output: output.sumstat.replace("_sumstat.csv.gz", ""),
+        locuseq = "{locuseq}",
+    resources:
+        runtime=lambda wc, attempt: 120 + attempt * 60,
+    shell:
+        """
+        source /exchange/healthds/singularity_functions
+
+        gwasstudio export  --search-file {input.qyaml}  --get-regions {input.qregion}  --output-prefix {params.prefix}
+
+        seqid=$(echo {params.locuseq} | cut -d'_' -f1)
+        odir=$(dirname {output.sumstat})
+
+        mv {params.prefix}_$seqid.csv.gz {output.sumstat}
+        # mv slurm*.out $odir
+        """
