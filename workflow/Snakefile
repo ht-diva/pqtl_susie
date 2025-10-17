@@ -18,13 +18,20 @@ rule all:
         #expand(ws_path("tmp/{locuseq}_dosage.pgen"), locuseq = data.locuseq),
         #expand(ws_path("susierss/cs_list/{locuseq}.cslist"), locuseq = data.locuseq),
         ws_path("susierss/collected_credible_sets.tsv"),
-
+        #expand(ws_path("tmp/{locuseq}_pheno.csv"), locuseq = data.locuseq)
+        #expand(ws_path("tmp/{locuseq}_query.yaml"), locuseq = data.locuseq),
+        #expand(ws_path("tmp/{locuseq}/{locuseq}_sumstat.csv.gz"), locuseq = data.locuseq)
 
 
 if config.get("run").get("susier"):
 
     include: "rules/finemapping.smk"
 
+else:
+
+    include: "rules/query_gwas.smk"
+    include: "rules/extrating_pheno.smk"
+    
 
 # rule all:
 #     input:
