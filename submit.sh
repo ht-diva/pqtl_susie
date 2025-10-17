@@ -4,7 +4,7 @@
 #SBATCH --output %j_susie.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
-#SBATCH --mem 16G
+#SBATCH --mem 2G
 #SBATCH --time 30-00:00:00
 
 source ~/.bashrc
