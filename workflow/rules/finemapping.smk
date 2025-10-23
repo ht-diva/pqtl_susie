@@ -1,8 +1,9 @@
 
 rule run_susieR:
     input:
-        dosage  = rules.extract_dosage.output.dosage,
+        dosage  = rules.subset_pgen.output.dosage,
         sumstat = ws_path("tmp/{locuseq}_sumstat.csv"),
+        ld = rules.compute_ld.output.ld,
     output:
         data_report = ws_path("susierss/cs_report/{locuseq}.report"),
         cs_summary = ws_path("susierss/cs_summary/{locuseq}.cssum"),
@@ -14,6 +15,7 @@ rule run_susieR:
         iter=config["susieR"]["iter"],
         min_abs_corr=config["susieR"]["min_abs_corr"],
         chrcol = config.get("sumstat").get("chrcol"),
+        ld_cor = config["run"]["ld_correlation"],
     resources:
         runtime=lambda wc, attempt: 6000 + attempt * 60,
     conda:

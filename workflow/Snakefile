@@ -25,12 +25,18 @@ rule all:
 
 if config.get("run").get("susier"):
 
+    include: "rules/subset_gwas.smk"
+    include: "rules/subset_pgen.smk"
+    include: "rules/compute_ld.smk"
     include: "rules/finemapping.smk"
 
 else:
 
     include: "rules/query_gwas.smk"
     include: "rules/extrating_pheno.smk"
+    include: "rules/subset_pgen.smk"
+    include: "rules/compute_ld.smk"
+    include: "rules/finemapping.smk"
     
 
 # rule all:

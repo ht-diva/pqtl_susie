@@ -1,6 +1,7 @@
 run:
   susie: False
   susier: True
+  ld_correlation: False
 
  # The pipe will enable the use of correlation matrix based on LD as specified in link below:
  # https://stephenslab.github.io/susieR/articles/finemapping_summary_statistics.html

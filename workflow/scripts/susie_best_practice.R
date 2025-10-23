@@ -30,10 +30,6 @@ suppressPackageStartupMessages({
 #----------------------------------------#
 # -----         User Inputs        ------
 #----------------------------------------#
-#proj_path <- "/scratch/dariush.ghasemi/projects/pqtl_susie/"
-
-#path_sumstat <- glue(proj_path, "test/results/fm/tmp/seq.8221.19_22_24234172_24401503_sumstat.csv")
-#path_pgen <- glue(proj_path, "results/test/fm/tmp/seq.8221.19_22_24234172_24401503.pgen")
 
 path_sumstat <- snakemake@input[["sumstat"]]
 path_pgen <- snakemake@input[["dosage"]]
@@ -47,6 +43,13 @@ susie_iter <- snakemake@params[["iter"]]
 #susie_iter <- 1000
 #susie_min_abs_cor <- 0.0
 
+
+# Set TRUE to compute correlation from X, FALSE to load pre-computed LD
+compute_ld_from_X <- snakemake@params[["ld_cor"]] # <-- user sets this
+path_ld_matrix <- snakemake@input[["ld"]]
+path_ld_header <- gsub(".matrix", ".headers", path_ld_matrix)
+
+# outputs
 out_data_report <- snakemake@output[["data_report"]]
 out_cs_summary <- snakemake@output[["cs_summary"]]
 out_cs_list <- snakemake@output[["cs_list"]]
@@ -83,6 +86,7 @@ is_strand_ambiguous <- function(a1, a2) {
 
 check_file(path_sumstat)
 check_file(path_pgen)
+if (!compute_ld_from_X) { check_file(path_ld_matrix) }
 
 
 #----------------------------------------#
@@ -219,28 +223,41 @@ message("✅ Saved  input characteristics  to : ", out_data_report)
 
 
 #----------------------------------------#
-# -----      Compute LD matrix     ------
+# -----  Load or Compute LD matrix  -----
 #----------------------------------------#
 
-# Compute LD correlation matrix
-R <- cor(X, use = "pairwise")
-message("✅ Computed LD correlation matrix of dimension: ", nrow(R), "x", ncol(R))
+if (compute_ld_from_X) {
+  message("📈 Computing LD correlation matrix from genotype matrix X ...")
+  R <- cor(X, use = "pairwise")
+  } else {
+    message("📥 Loading precomputed LD matrix from PLINK2 output ...")
+    ld_headers <- fread(path_ld_header, header = FALSE, col.names = "SNP")
+    R <- fread(path_ld_matrix) %>% as.matrix()
+    rownames(R) <- colnames(R) <- ld_headers$SNP
+    }
 
-# Check Cholesky factorization of a real symmetric positive-definite square matrix.
-positive_semi_definite <- TRUE
+message("✅ LD matrix of dimension: ", nrow(R), "x", ncol(R))
 
-tryCatch({
-  chol(R)
-}, error = function(e) {
-  positive_semi_definite <- FALSE
-})
-
-
-if (!positive_semi_definite) {
-  stop("The LD matrix is not positive semi-definite.")
+# CHECK SYMMETRY: 
+if (!isSymmetric(R, tol = 1e-8)) {
+  stop("❌ The LD matrix is not symmetric. Please check your input.")
 }
 
-message("✅ Computed LD correlation matrix is positive semi-definite.")
+# Check Positive semi-definiteness: Cholesky factorization 
+# of a real symmetric positive-definite square matrix
+positive_semi_definite <- TRUE
+tryCatch({
+  invisible(chol(R))   # will fail if not positive-definit
+  }, error = function(e) {
+    positive_semi_definite <- FALSE
+})
+
+if (!positive_semi_definite) {
+  stop("❌ The LD matrix is not positive semi-definite. SuSiE requires PSD LD matrix.")
+} else {
+  message("✅ The LD matrix is symmetric and positive semi-definite.")
+}
+
 
 #----------------------------------------#
 # -----  Prepare Inputs for SuSiE   -----
