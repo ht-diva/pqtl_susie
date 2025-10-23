@@ -28,6 +28,9 @@ set-resources:
     extract_dosage:
         mem_mb: 8000 + attempt * 2048
         threads: *cores
+    compute_ld:
+        mem_mb: 2048 + attempt * 2048
+        threads: *cores
     run_susieR:
         mem_mb: 8192 + attempt * 2048
         threads: *cores
