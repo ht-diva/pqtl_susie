@@ -8,6 +8,7 @@ rule run_susieR:
         data_report = ws_path("susierss/cs_report/{locuseq}.report"),
         cs_summary = ws_path("susierss/cs_summary/{locuseq}.cssum"),
         cs_rds  = ws_path("susierss/cs_fitness/{locuseq}_fit.rds"),
+        cs_annot= ws_path("susierss/cs_fitness/{locuseq}_annot.rds"),
         cs_list = ws_path("susierss/cs_list/{locuseq}.cslist"),
     log:
         ws_path("logs/susieR/{locuseq}.log"),

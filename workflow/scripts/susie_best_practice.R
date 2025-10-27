@@ -54,6 +54,7 @@ out_data_report <- snakemake@output[["data_report"]]
 out_cs_summary <- snakemake@output[["cs_summary"]]
 out_cs_list <- snakemake@output[["cs_list"]]
 out_cs_rds <- snakemake@output[["cs_rds"]]
+out_cs_annot <- snakemake@output[["cs_annot"]]
 
 
 #----------------------------------------#
@@ -362,6 +363,11 @@ if (length(cs$cs) == 0) {
     message("✅ Saved credible set results to: ", out_cs_summary)
     message("✅ Saved SuSiE full summary to: ", out_cs_rds)
     
+    # Annotate and save full model fitness with LD matrix for coloc
+    res_rss_annot <- coloc::annotate_susie(res_rss, sumstat$SNPID, R)
+    
+    saveRDS(res_rss_annot, file = out_cs_annot)
+    message("✅ Saved LD-annotated SuSiE full summary for coloc: ", out_cs_annot)
 }
 
 #-------------# 
