@@ -34,7 +34,7 @@ sumstat:
 
 # SusieR parameters
 susieR:
- min_abs_corr: 0.1
+ min_abs_corr: 0.5
  iter: 1000
  extension: 0
 

@@ -289,9 +289,12 @@ message("🎉 SuSiE RSS completed successfully.")
 # -----    Extract & Save Results  ------
 #----------------------------------------#
 
-# Credible sets
-cs <- susie_get_cs(res_rss, X = NULL)
+# full model summary
+full_res <- summary(res_rss)
 
+# Credible sets
+#cs <- susie_get_cs(res_rss, X = NULL) # issue #257: generates more credible sets as it applies NO impurity filter
+cs <- full_res$cs
 
 if (length(cs$cs) == 0) {
   message("⚠️ No credible sets found for this region.")
@@ -306,6 +309,7 @@ if (length(cs$cs) == 0) {
     # Build long table of all CS members
     res_list <- lapply(seq_along(cs$cs), function(k) {
       
+      # CS index
       idx <- cs$cs[[k]]
       
       # guard against NULL/empty/invalid indices
@@ -348,8 +352,6 @@ if (length(cs$cs) == 0) {
     message("✅ Saved SuSiE full summary to: ", out_cs_rds)
 }
 
-# full model summary
-full_res <- summary(res_rss)
 
 # prepare for merge
 cs_details <- full_res$cs %>%
