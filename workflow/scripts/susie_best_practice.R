@@ -55,6 +55,7 @@ out_cs_summary <- snakemake@output[["cs_summary"]]
 out_cs_list <- snakemake@output[["cs_list"]]
 out_cs_rds <- snakemake@output[["cs_rds"]]
 
+
 #----------------------------------------#
 # -------     Helper Functions     ------
 #----------------------------------------#
@@ -200,27 +201,6 @@ message("✅ Subsetted to common SNPs. Ready for SuSiE.")
 
 #stopifnot(all(merged$SNP == dosage$SNP)) # safety check
 
-#----------------------------------------#
-# ------      Reporting Counts      -----
-#----------------------------------------#
-
-#extract seqid_locus compound
-locuseq <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
-
-# reporting numbers of input data 
-data_counts <- data.frame(
-  "locuseq"       = locuseq,
-  "n_snp_pgen"    = n_variants,
-  "n_snp_gwas"    = n_snp_sumstat,
-  "n_snp_shared"  = n_common_snps,
-  "n_sample_pgen" = n_samples
-)
-
-# saving the report
-write.table(data_counts, file = out_data_report, sep = "\t", row.names = F, quote = F)
-
-message("✅ Saved  input characteristics  to : ", out_data_report)
-
 
 #----------------------------------------#
 # -----  Load or Compute LD matrix  -----
@@ -266,6 +246,36 @@ if (!positive_semi_definite) {
 betas    <- sumstat$BETA
 se_betas <- sumstat$SE
 n        <- min(sumstat$N, na.rm = TRUE)
+
+
+#----------------------------------------#
+# ------      Reporting Counts      -----
+#----------------------------------------#
+
+# The estimated λ is
+lambda <- estimate_s_rss(betas/se_betas, R=R, n=n)
+
+message("✅ The estimated λ is ", lambda)
+
+#extract seqid_locus compound
+locuseq <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
+
+# reporting numbers of input data 
+data_counts <- data.frame(
+  "locuseq"       = locuseq,
+  "n_snp_pgen"    = n_variants,
+  "n_snp_gwas"    = n_snp_sumstat,
+  "n_snp_shared"  = n_common_snps,
+  "n_sample_pgen" = n_samples,
+  "lambda"        = lambda,
+  "ld_from_X"     = compute_ld_from_X
+)
+
+# saving the report
+write.table(data_counts, file = out_data_report, sep = "\t", row.names = F, quote = F)
+
+message("✅ Saved  input characteristics  to : ", out_data_report)
+
 
 #----------------------------------------#
 # -------      Run SuSiE RSS      -------
@@ -327,6 +337,7 @@ if (length(cs$cs) == 0) {
         POS   = sumstat$POS[idx],
         BETA  = sumstat$BETA[idx],
         SE    = sumstat$SE[idx],
+        MLOG10P = sumstat$SE[idx],
         PIP   = round(res_rss$pip[idx], 6)
         # A1     = merged$A1_sum[idx],
         # A2     = merged$A2_sum[idx]
@@ -350,9 +361,10 @@ if (length(cs$cs) == 0) {
     
     message("✅ Saved credible set results to: ", out_cs_summary)
     message("✅ Saved SuSiE full summary to: ", out_cs_rds)
+    
 }
 
-
+#-------------# 
 # prepare for merge
 cs_details <- full_res$cs %>%
   data.frame() %>%
