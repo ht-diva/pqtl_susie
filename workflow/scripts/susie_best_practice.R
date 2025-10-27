@@ -3,6 +3,9 @@
 # SuSiE Fine-mapping Input Loader
 # =============================
 
+start_time <- Sys.time()
+start_time
+
 # Get log path from Snakemake, fallback if missing
 log_file <- tryCatch(snakemake@log[[1]], error = function(e) "logs/susieR/default.log")
 
@@ -395,6 +398,15 @@ write.table(cs_list, file = out_cs_list, sep = "\t", row.names = F, quote = F)
 
 message("✅ Saved credible set list to: ", out_cs_list)
 message("✅ Analysis done!")
+
+
+#-------------#
+# Report run time
+end_time <- Sys.time()
+end_time
+elapsed_time <- end_time - start_time
+
+message("Elapsed time:", round(as.numeric(elapsed_time, units="mins"), 3), "minutes\n")
 
 
 #-------------# 
