@@ -3,9 +3,6 @@
 # SuSiE Fine-mapping Input Loader
 # =============================
 
-start_time <- Sys.time()
-start_time
-
 # Get log path from Snakemake, fallback if missing
 log_file <- tryCatch(snakemake@log[[1]], error = function(e) "logs/susieR/default.log")
 
@@ -16,6 +13,9 @@ dir.create(dirname(log_file), recursive = TRUE, showWarnings = FALSE)
 log_con <- file(log_file, open = "wt")
 sink(log_con, type = "output")   # redirect stdout
 sink(log_con, type = "message")  # redirect messages / stderr
+
+start_time <- Sys.time()
+start_time
 
 #----------------------------------------#
 # ------       Load libraries      ------
@@ -28,6 +28,7 @@ suppressPackageStartupMessages({
   library(susieR)
   library(pgenlibr) # to load PGEN file
   library(Rfast) #to calculate correlation matrix faster
+  library(coloc)
 })
 
 #----------------------------------------#
@@ -406,7 +407,7 @@ end_time <- Sys.time()
 end_time
 elapsed_time <- end_time - start_time
 
-message("Elapsed time:", round(as.numeric(elapsed_time, units="mins"), 3), "minutes\n")
+message("Run time: ", round(as.numeric(elapsed_time, units="mins"), 3), " minutes\n")
 
 
 #-------------# 
