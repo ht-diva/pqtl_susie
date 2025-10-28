@@ -17,4 +17,5 @@ dependencies:
   - r-rfast=2.1.5.1
   - r-markdown
   - r-pgenlibr=0.5.3
+  - r-coloc=5.2.3
 
