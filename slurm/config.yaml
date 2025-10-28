@@ -3,7 +3,7 @@ jobs: 250
 software-deployment-method:
    - conda
    - apptainer
-retries: 0
+retries: 3
 max-jobs-per-second: 10
 max-status-checks-per-second: 1
 local-cores: 1
@@ -25,8 +25,17 @@ set-threads:
     harmonize_sumstats: *cores
     bgzip_tabix: *cores
 set-resources:
-    extract_dosage:
-        mem_mb: 8000 + attempt * 2048
+    subset_pgen:
+        mem_mb: 2048 + attempt * 2048
+        threads: *cores
+    grep_pheno:
+        mem_mb: 512 + attempt * 512
+        threads: *cores
+    create_query:
+        mem_mb: 0 + attempt * 256
+        threads: *cores
+    query_gwas:
+        mem_mb: 0 + attempt * 256
         threads: *cores
     compute_ld:
         mem_mb: 2048 + attempt * 2048
