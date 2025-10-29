@@ -44,8 +44,8 @@ path_psam <- gsub(".pgen", ".psam", path_pgen)
 label_chr <- snakemake@params[["chrcol"]]
 susie_min_abs_cor <- snakemake@params[["min_abs_corr"]]
 susie_iter <- snakemake@params[["iter"]]
-#susie_iter <- 1000
-#susie_min_abs_cor <- 0.0
+susie_L <- snakemake@params[["L"]]
+susie_est_resvar <- snakemake@params[["est_res_var"]]
 
 
 # Set TRUE to compute correlation from X, FALSE to load pre-computed LD
@@ -294,8 +294,10 @@ res_rss <- tryCatch(
     shat = se_betas,
     n = n,
     R = R,
+    L = susie_L,
     max_iter = susie_iter,
-    min_abs_corr = susie_min_abs_cor
+    min_abs_corr = susie_min_abs_cor,
+    estimate_residual_variance = susie_est_resvar # TRUE if using in-sample LD
   ),
   error = err_handling
 )

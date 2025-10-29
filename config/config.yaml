@@ -27,5 +27,7 @@ sumstat:
 susieR:
  min_abs_corr: 0.5
  iter: 1000
+ L: 10
  extension: 100000
+ estimate_residual_variance: False
 
