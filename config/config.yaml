@@ -10,10 +10,11 @@ run:
 
 
 # paths
-workspace_path: "results/VTN"
-path_lb: "config/VTN_loci.csv"
+workspace_path: "results/meta_test"
+path_lb: "/scratch/dariush.ghasemi/projects/pqtl_pipeline_finemap/results/meta_correct_sdy/break/collected_loci_excluding_mhc.csv"
 path_gwas: "/exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats_digits_not_flipped_filtered/output"
 genotype: "/scratch/giulia.pontali/genomics_QC_pipeline/results_scratch/pgen/qc_recoded_harmonised/impute_recoded_selected_sample_filter_hq_var_new_id_alleles_"
+path_pheno: "data/INTERVAL_NonImp_residuals_final.txt"
 
 
 sumstat:
@@ -22,19 +23,9 @@ sumstat:
   chrcol: "##CHR"
 
 
-
-# Phenotype file used in the GWAS
-# ============================= #
-# tab separated.
-# First two colums should be FID and IID
-#pheno_file: "data/INTERVAL_NonImp_residuals_final.txt"
-#run_list: "data/pheno_to_run.csv"
-#sample_file: "data/samplelist.csv"
-
-
 # SusieR parameters
 susieR:
  min_abs_corr: 0.5
  iter: 1000
- extension: 0
+ extension: 100000
 
