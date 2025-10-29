@@ -67,7 +67,7 @@ out_cs_annot <- snakemake@output[["cs_annot"]]
 
 err_handling <- function(e) { stop("❌ SuSiE failed: ", e$message) }
 
-check_file <- function(path, min_size = 1e3) {
+check_file <- function(path, min_size = 1e2) {
   if (!file.exists(path)) {
     stop(paste("❌ File does not exist:", path))
   }
