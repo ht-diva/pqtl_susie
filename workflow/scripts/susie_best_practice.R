@@ -396,6 +396,25 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
       full_join(cs_details, ., join_by(seqid, locus, cs_id)) %>%
       relocate(seqid, locus, cs_id, cs_log10bf, cs_avg_r2, cs_min_r2, cs_snps)
     
+    # create a plot name and directory
+    oplot <- gsub("report","png", out_data_report)
+    dir.create(dirname(oplot), recursive = T)
+    
+    png(filename = oplot, height = 5.5, width = 7, units = "in", res = 300)
+    
+    # plot credible sets
+    susie_plot(
+      res_rss,
+      y = "PIP",
+      b = betas,
+      xlab = "Variants",
+      add_bar = FALSE,
+      add_legend = TRUE,
+      main = paste("SeqID:", tag_seqid, "\nRegion:", tag_locus)
+    )
+    
+    dev.off()
+    message("✅ PIP plot for credible sets saved to: ", oplot)
 }
 
 #-------------#
