@@ -269,7 +269,8 @@ tag_locus <- sub("^seq\\.\\d+\\.\\d+_", "chr", locuseq)
 
 # reporting numbers of input data 
 data_counts <- data.frame(
-  "locuseq"       = locuseq,
+  "seqid"         = tag_seqid,
+  "locus"         = tag_locus,
   "n_snp_pgen"    = n_variants,
   "n_snp_gwas"    = n_snp_sumstat,
   "n_snp_shared"  = n_common_snps,

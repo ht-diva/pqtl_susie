@@ -16,7 +16,7 @@ rule run_susieR:
         iter=config["susieR"]["iter"],
         L=config["susieR"]["L"],
         min_abs_corr=config["susieR"]["min_abs_corr"],
-        est_res_var=onfig["susieR"]["estimate_residual_variance"],
+        est_res_var =config["susieR"]["estimate_residual_variance"],
         chrcol = config.get("sumstat").get("chrcol"),
         ld_cor = config["run"]["ld_correlation"],
     resources:
