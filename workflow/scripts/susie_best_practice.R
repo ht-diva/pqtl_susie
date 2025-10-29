@@ -262,8 +262,10 @@ lambda <- estimate_s_rss(betas/se_betas, R=R, n=n)
 
 message("✅ The estimated λ is ", lambda)
 
-#extract seqid_locus compound
+# extracting below tags from filename helps concatenation later
 locuseq <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
+tag_seqid <- sub("_.*$", "", locuseq)
+tag_locus <- sub("^seq\\.\\d+\\.\\d+_", "chr", locuseq)
 
 # reporting numbers of input data 
 data_counts <- data.frame(
@@ -311,16 +313,37 @@ full_res <- summary(res_rss)
 #cs <- susie_get_cs(res_rss, X = NULL) # issue #257: generates more credible sets as it applies NO impurity filter
 cs <- full_res$cs
 
-if (length(cs$cs) == 0) {
-  message("⚠️ No credible sets found for this region.")
+# Handle regions with no credible sets
+if (is.null(cs$cs) || length(cs$cs) == 0) {
+  message("⚠️ No credible sets found for region ", locuseq)
+  
+  # create a fake GWAS summary
+  cs_summary <- data.table(
+    seqid = tag_seqid,
+    locus = tag_locus,
+    cs_id = "no_credible",
+    SNP   = NA_character_,
+    CHR   = NA_character_,
+    POS   = NA_character_,
+    BETA  = NA_character_,
+    SE    = NA_character_,
+    MLOG10P = NA_character_,
+    PIP   = NA_character_
+  )
+  
+  # create a fake list of CS variants
+  cs_list <- data.table(
+    seqid = tag_seqid,
+    locus = tag_locus,
+    cs_id = "no_credible",
+    cs_log10bf = NA_character_,
+    cs_avg_r2 = NA_character_,
+    cs_min_r2 = NA_character_,
+    cs_snps = NA_character_
+  )
   
   } else {
   
-    # extract seqid and locus tag from filename (helps concatenation later)
-    tag_seqid <- sub("_.*$", "", locuseq)
-    tag_locus <- sub("^seq\\.\\d+\\.\\d+_", "chr", locuseq)
-    
-    
     # Build long table of all CS members
     res_list <- lapply(seq_along(cs$cs), function(k) {
       
@@ -342,7 +365,7 @@ if (length(cs$cs) == 0) {
         POS   = sumstat$POS[idx],
         BETA  = sumstat$BETA[idx],
         SE    = sumstat$SE[idx],
-        MLOG10P = sumstat$SE[idx],
+        MLOG10P = sumstat$MLOG10P[idx],
         PIP   = round(res_rss$pip[idx], 6)
         # A1     = merged$A1_sum[idx],
         # A2     = merged$A2_sum[idx]
@@ -351,52 +374,43 @@ if (length(cs$cs) == 0) {
     
     cs_summary <- rbindlist(res_list, use.names = TRUE, fill = TRUE)
     
-    # save GWAS summary for cs variants
-    write.table(
-      cs_summary,
-      file = out_cs_summary,
-      sep = "\t",
-      col.names = TRUE,
-      row.names = FALSE,
-      quote = FALSE
-    )
+    # prepare for merge
+    cs_details <- full_res$cs %>%
+      data.frame() %>%
+      mutate(
+        seqid = tag_seqid,
+        locus = tag_locus,
+        cs_id = paste0("CS", cs)
+      ) %>%
+      select(- cs, - variable)
     
-    # save full model fitness
-    saveRDS(res_rss, file = out_cs_rds)
+    # list of CS variants
+    cs_list <- cs_summary %>%
+      summarize(
+        cs_snps = paste0(unique(SNP), collapse = ","), 
+        .by = c("seqid", "locus", "cs_id") # keep seqid and locus in CS list
+      ) %>%
+      full_join(cs_details, ., join_by(seqid, locus, cs_id)) %>%
+      relocate(seqid, locus, cs_id, cs_log10bf, cs_avg_r2, cs_min_r2, cs_snps)
     
-    message("✅ Saved credible set results to: ", out_cs_summary)
-    message("✅ Saved SuSiE full summary to: ", out_cs_rds)
-    
-    # Annotate and save full model fitness with LD matrix for coloc
-    res_rss_annot <- coloc::annotate_susie(res_rss, sumstat$SNPID, R)
-    
-    saveRDS(res_rss_annot, file = out_cs_annot)
-    message("✅ Saved LD-annotated SuSiE full summary for coloc: ", out_cs_annot)
 }
 
-#-------------# 
-# prepare for merge
-cs_details <- full_res$cs %>%
-  data.frame() %>%
-  mutate(
-    seqid = tag_seqid,
-    locus = tag_locus,
-    cs_id = paste0("CS", cs)
-    ) %>%
-  select(- cs, - variable)
+#-------------#
+# save GWAS summary for cs variants
+write.table(cs_summary, file = out_cs_summary, sep = "\t", row.names = F, quote = FALSE)
+message("✅ Saved credible set results to: ", out_cs_summary)
 
-# list of CS variants
-cs_list <- cs_summary %>%
-  summarize(
-    cs_snps = paste0(unique(SNP), collapse = ","), 
-    .by = c("seqid", "locus", "cs_id") # keep seqid and locus in CS list
-    ) %>%
-  full_join(cs_details, ., join_by(seqid, locus, cs_id)) %>%
-  relocate(seqid, locus, cs_id, cs_log10bf, cs_avg_r2, cs_min_r2, cs_snps)
+# save full model fitness
+saveRDS(res_rss, file = out_cs_rds)
+message("✅ Saved SuSiE full summary to: ", out_cs_rds)
 
+# Annotate and save full model fitness with LD matrix for coloc
+res_rss_annot <- coloc::annotate_susie(res_rss, sumstat$SNPID, R)
+
+saveRDS(res_rss_annot, file = out_cs_annot)
+message("✅ Saved LD-annotated SuSiE full summary for coloc: ", out_cs_annot)
 
 write.table(cs_list, file = out_cs_list, sep = "\t", row.names = F, quote = F)
-
 message("✅ Saved credible set list to: ", out_cs_list)
 message("✅ Analysis done!")
 
