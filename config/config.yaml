@@ -29,5 +29,5 @@ susieR:
  iter: 1000
  L: 10
  extension: 100000
- estimate_residual_variance: False
+ estimate_residual_variance: FALSE
 
