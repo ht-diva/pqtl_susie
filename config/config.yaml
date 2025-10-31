@@ -10,7 +10,7 @@ run:
 
 
 # paths
-workspace_path: "results/meta_test"
+workspace_path: "results/meta_opt"
 path_lb: "/scratch/dariush.ghasemi/projects/pqtl_pipeline_finemap/results/meta_correct_sdy/break/collected_loci_excluding_mhc.csv"
 path_gwas: "/exchange/healthds/pQTL/results/META_CHRIS_INTERVAL/qced_sumstats_digits_not_flipped_filtered/output"
 genotype: "/scratch/giulia.pontali/genomics_QC_pipeline/results_scratch/pgen/qc_recoded_harmonised/impute_recoded_selected_sample_filter_hq_var_new_id_alleles_"

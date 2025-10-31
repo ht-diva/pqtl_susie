@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#SBATCH --job-name test
-#SBATCH --output %j_susie.log
+#SBATCH --job-name susie
+#SBATCH --output %j_meta_opt.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
-#SBATCH --mem 2G
+#SBATCH --mem 6G
 #SBATCH --time 30-00:00:00
 
 source ~/.bashrc
