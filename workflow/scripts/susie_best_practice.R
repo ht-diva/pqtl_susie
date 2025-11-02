@@ -98,10 +98,11 @@ if (!compute_ld_from_X) { check_file(path_ld_matrix) }
 #----------------------------------------#
 # ------         Load Data        -------
 #----------------------------------------#
-headers = c("CHROM", "GENPOS", "ID", "ALLELE0", "ALLELE1", "A1FREQ", "INFO", "N", "TEST", "BETA", "SE", "CHISQ", "LOG10P", "EXTRA")
+
+headers = c("CHR", "POS", "SNPID", "EA", "NEA", "EAF", "N", "BETA", "SE", "MLOG10P", "CHISQ")
+
 # Use fread with explicit arguments to avoid surprises
 sumstat <- tryCatch({
-  #fread(path_sumstat, header = TRUE, sep = "\t", data.table = FALSE)
   fread(path_sumstat, header = FALSE, col.names = headers, sep = "\t", data.table = FALSE)
 }, error = function(e) {
   stop("❌ Failed to read sumstat file: ", e$message)
@@ -127,12 +128,12 @@ pgen <- tryCatch({
 # --------       Basic QC         -------
 #----------------------------------------#
 # rename column name
-colnames(sumstat)[which(names(sumstat) == label_chr)] <- "CHR"
-colnames(sumstat)[which(names(sumstat) == "ID")] <- "SNPID"
-colnames(sumstat)[which(names(sumstat) == "GENPOS")] <- "POS"
-colnames(sumstat)[which(names(sumstat) == "ALLELE0")] <- "NEA"
-colnames(sumstat)[which(names(sumstat) == "ALLELE1")] <- "EA"
-colnames(sumstat)[which(names(sumstat) == "LOG10P")] <- "MLOG10P"
+# colnames(sumstat)[which(names(sumstat) == label_chr)] <- "CHR"
+# colnames(sumstat)[which(names(sumstat) == "ID")] <- "SNPID"
+# colnames(sumstat)[which(names(sumstat) == "GENPOS")] <- "POS"
+# colnames(sumstat)[which(names(sumstat) == "ALLELE0")] <- "NEA"
+# colnames(sumstat)[which(names(sumstat) == "ALLELE1")] <- "EA"
+# colnames(sumstat)[which(names(sumstat) == "LOG10P")] <- "MLOG10P"
 
 # Check mandatory columns in summary stats
 required_sumstat_cols <- c("SNPID", "CHR", "POS", "EA", "NEA", "BETA", "SE", "MLOG10P")
