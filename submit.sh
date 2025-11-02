@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name susie
-#SBATCH --output %j_meta_opt.log
+#SBATCH --output %j_intreval_test.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
 #SBATCH --mem 6G
