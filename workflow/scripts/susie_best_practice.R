@@ -46,6 +46,8 @@ susie_min_abs_cor <- snakemake@params[["min_abs_corr"]]
 susie_iter <- snakemake@params[["iter"]]
 susie_L <- snakemake@params[["L"]]
 susie_est_resvar <- snakemake@params[["est_res_var"]]
+study_id <- snakemake@params[["study"]]
+n_gwas <- snakemake@params[["n_gwas"]]
 
 
 # Set TRUE to compute correlation from X, FALSE to load pre-computed LD
@@ -102,11 +104,40 @@ if (!compute_ld_from_X) { check_file(path_ld_matrix) }
 headers = c("CHR", "POS", "SNPID", "EA", "NEA", "EAF", "N", "BETA", "SE", "MLOG10P", "CHISQ")
 
 # Use fread with explicit arguments to avoid surprises
-sumstat <- tryCatch({
-  fread(path_sumstat, header = FALSE, col.names = headers, sep = "\t", data.table = FALSE)
-}, error = function(e) {
-  stop("❌ Failed to read sumstat file: ", e$message)
-})
+if (study_id == "interval") {
+  
+  headers <- c("CHR", "POS", "SNPID", "EA", "NEA", "EAF", "N", "BETA", "SE", "MLOG10P", "CHISQ")
+  
+  sumstat <- tryCatch({
+    fread(path_sumstat, header = FALSE, col.names = headers, sep = "\t", data.table = FALSE)
+    }, error = function(e) {
+      stop("❌ Failed to read sumstat file: ", e$message)
+      })
+  
+  } else if (study_id == "believe") {
+    
+    headers <- c("CHR", "POS", "SNPID", "EA", "NEA", "EAF", "BETA", "SE", "P", "MLOG10P", "Z")
+    
+    sumstat <- tryCatch({
+      fread(path_sumstat, header = FALSE, col.names = headers, sep = "\t", data.table = FALSE)
+      }, error = function(e) {
+        stop("❌ Failed to read sumstat file: ", e$message)
+        })
+    
+    # define sample size manually
+    sumstat$N <- n_gwas
+    
+    } else if (study_id == "meta") {
+      
+      sumstat <- tryCatch({
+        fread(path_sumstat, header = TRUE, sep = "\t", data.table = FALSE)
+        }, error = function(e) {
+          stop("❌ Failed to read sumstat file: ", e$message)
+          })
+      
+      } else {
+        stop("❌ The study name is incorrect. Please use any of interval/believe/meta in config file.")
+}
 
 # number of SNPs in GWAS results subset
 n_snp_sumstat <- nrow(sumstat)
@@ -128,10 +159,12 @@ pgen <- tryCatch({
 # --------       Basic QC         -------
 #----------------------------------------#
 # rename column name
-# colnames(sumstat)[which(names(sumstat) == label_chr)] <- "CHR"
+if (study_id == "meta") {
+  colnames(sumstat)[which(names(sumstat) == label_chr)] <- "CHR"
+}
 
 # Check mandatory columns in summary stats
-required_sumstat_cols <- c("SNPID", "CHR", "POS", "EA", "NEA", "BETA", "SE", "MLOG10P")
+required_sumstat_cols <- c("SNPID", "CHR", "POS", "EA", "NEA", "BETA", "SE", "MLOG10P", "N")
 missing_cols <- setdiff(required_sumstat_cols, colnames(sumstat))
 
 if (length(missing_cols) > 0) {
