@@ -30,6 +30,11 @@ rule subset_gwas:
         beg_ext=$((beg - {params.tail}))
         end_ext=$((end + {params.tail}))
         
+        # make sure beg_ext is not negative
+        if [ $beg_ext -lt 0 ]; then
+            beg_ext=0
+        fi
+        
         # reformat locus to be readable for locuzoom
         region=${{chr}}:${{beg_ext}}-${{end_ext}}
         
