@@ -7,9 +7,11 @@ min_version("8.4.1")
 #containerized: "docker://ghcr.io/ht-diva/pqtl_pipeline:d0d53c1"
 
 configfile: "config/config.yaml"
+config_copy="config/config.yaml"
 
 
 include: "rules/common.smk"
+include: "rules/return_config.smk"
 
 
 rule all:
@@ -18,6 +20,7 @@ rule all:
         #expand(ws_path("tmp/{locuseq}_dosage.pgen"), locuseq = data.locuseq),
         #expand(ws_path("susierss/cs_list/{locuseq}.cslist"), locuseq = data.locuseq),
         ws_path("susierss/collected_credible_sets.tsv"),
+        ws_path("config/config_used.yaml"),
         #expand(ws_path("tmp/{locuseq}_pheno.csv"), locuseq = data.locuseq)
         #expand(ws_path("tmp/{locuseq}_query.yaml"), locuseq = data.locuseq),
         #expand(ws_path("tmp/{locuseq}/{locuseq}_sumstat.csv.gz"), locuseq = data.locuseq)
