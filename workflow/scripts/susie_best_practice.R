@@ -129,11 +129,6 @@ pgen <- tryCatch({
 #----------------------------------------#
 # rename column name
 # colnames(sumstat)[which(names(sumstat) == label_chr)] <- "CHR"
-# colnames(sumstat)[which(names(sumstat) == "ID")] <- "SNPID"
-# colnames(sumstat)[which(names(sumstat) == "GENPOS")] <- "POS"
-# colnames(sumstat)[which(names(sumstat) == "ALLELE0")] <- "NEA"
-# colnames(sumstat)[which(names(sumstat) == "ALLELE1")] <- "EA"
-# colnames(sumstat)[which(names(sumstat) == "LOG10P")] <- "MLOG10P"
 
 # Check mandatory columns in summary stats
 required_sumstat_cols <- c("SNPID", "CHR", "POS", "EA", "NEA", "BETA", "SE", "MLOG10P")
@@ -321,7 +316,9 @@ full_res <- summary(res_rss)
 
 # Credible sets
 #cs <- susie_get_cs(res_rss, X = NULL) # issue #257: generates more credible sets as it applies NO impurity filter
-cs <- full_res$cs
+
+cs   <- full_res$cs    # containing CS impurity indices
+vars <- full_res$vars  # containing CS Posterior Inclusion Probabilities
 
 # Handle regions with no credible sets
 if (is.null(cs$cs) || length(cs$cs) == 0) {
@@ -332,12 +329,6 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
     seqid = tag_seqid,
     locus = tag_locus,
     cs_id = "no_credible",
-    SNP   = NA_character_,
-    CHR   = NA_character_,
-    POS   = NA_character_,
-    BETA  = NA_character_,
-    SE    = NA_character_,
-    MLOG10P = NA_character_,
     PIP   = NA_character_
   )
   
@@ -349,63 +340,43 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
     cs_log10bf = NA_character_,
     cs_avg_r2 = NA_character_,
     cs_min_r2 = NA_character_,
+    ncs = NA_character_,
     cs_snps = NA_character_
   )
   
   } else {
-  
-    # Build long table of all CS members
-    res_list <- lapply(seq_along(cs$cs), function(k) {
-      
-      # CS index
-      idx <- cs$cs[[k]]
-      
-      # guard against NULL/empty/invalid indices
-      if (is.null(idx) || length(idx) == 0) return(NULL)
-      idx <- as.integer(idx)
-      idx <- idx[is.finite(idx) & idx >= 1 & idx <= nrow(sumstat)]
-      if (length(idx) == 0) return(NULL)
-      
-      data.table(
-        seqid = tag_seqid,
-        locus = tag_locus,
-        cs_id = paste0("CS", k),
-        SNP   = sumstat$SNPID[idx],
-        CHR   = sumstat$CHR[idx],
-        POS   = sumstat$POS[idx],
-        BETA  = sumstat$BETA[idx],
-        SE    = sumstat$SE[idx],
-        MLOG10P = sumstat$MLOG10P[idx],
-        PIP   = round(res_rss$pip[idx], 6)
-        # A1     = merged$A1_sum[idx],
-        # A2     = merged$A2_sum[idx]
+    
+    # list of the entire SNPs with PIP
+    snps_pip <- vars %>%
+      transmute(
+        cs_id = cs,
+        SNPID = sumstat[variable, "SNPID"],
+        PIP = variable_prob
       )
-    })
     
-    cs_summary <- rbindlist(res_list, use.names = TRUE, fill = TRUE)
-    
-    # prepare for merge
-    cs_details <- full_res$cs %>%
-      data.frame() %>%
-      mutate(
-        seqid = tag_seqid,
-        locus = tag_locus,
-        cs_id = paste0("CS", cs)
-      ) %>%
-      select(- cs, - variable)
+    # subset of GWAS results for CS variants
+    cs_summary <- sumstat %>%
+      left_join(snps_pip, by = "SNPID") %>%
+      filter(cs_id > 0)
     
     # list of CS variants
     cs_list <- cs_summary %>%
       summarize(
-        cs_snps = paste0(unique(SNP), collapse = ","), 
-        .by = c("seqid", "locus", "cs_id") # keep seqid and locus in CS list
-      ) %>%
-      full_join(cs_details, ., join_by(seqid, locus, cs_id)) %>%
-      relocate(seqid, locus, cs_id, cs_log10bf, cs_avg_r2, cs_min_r2, cs_snps)
+        cs_snps = paste(SNPID, collapse = ","),
+        .by = cs_id
+        ) %>%
+      full_join(cs, join_by(cs_id == cs)) %>% # add impurity indices
+      mutate(
+        seqid = tag_seqid, # store seqid and locus in CS list
+        locus = tag_locus,
+        ncs = str_count(variable, ",") + 1  # number of variants in each set
+      ) %>% # only remove 'variable', indicating CS indices
+      select(seqid, locus, cs_id, cs_log10bf, cs_avg_r2, cs_min_r2, ncs, cs_snps)
+    
     
     # create a plot name and directory
     oplot <- gsub("report","png", out_data_report)
-    dir.create(dirname(oplot), recursive = T)
+    dir.create(dirname(oplot), recursive = T, showWarnings = FALSE)
     
     png(filename = oplot, height = 5.5, width = 7, units = "in", res = 300)
     
