@@ -2,12 +2,14 @@
 rule subset_pgen:
     input:
         pgen = lambda wildcards: get_geno(wildcards.locuseq),
-        snplist = ws_path("tmp/{locuseq}_snps.list"), #rules.subset_gwas.output.snplist
+        snplist = rules.subset_gwas.output.snplist
     output:
-        dosage=ws_path("tmp/{locuseq}_dosage.pgen"),
+        pgen=temp(ws_path("tmp/{locuseq}_dosage.pgen")),
+        pvar=temp(ws_path("tmp/{locuseq}_dosage.pvar")),
+        psam=temp(ws_path("tmp/{locuseq}_dosage.psam")),
     params:
         genotype=lambda wildcards, input: input.pgen.replace(".pgen", ""),
-        ofile=lambda wildcards, output: output.dosage.replace(".pgen", ""),
+        ofile= lambda wildcards, output: output.pgen.replace(".pgen", ""),
     resources:
         runtime=lambda wc, attempt: 30 + attempt * 10,
     shell:

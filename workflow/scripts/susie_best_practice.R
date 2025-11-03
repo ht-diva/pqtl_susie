@@ -36,9 +36,9 @@ suppressPackageStartupMessages({
 #----------------------------------------#
 
 path_sumstat <- snakemake@input[["sumstat"]]
-path_pgen <- snakemake@input[["dosage"]]
-path_pvar <- gsub(".pgen", ".pvar", path_pgen)
-path_psam <- gsub(".pgen", ".psam", path_pgen)
+path_pgen <- snakemake@input[["pgen"]]
+path_pvar <- snakemake@input[["pvar"]]
+path_psam <- snakemake@input[["psam"]]
 
 # Load parameters for susieR model
 label_chr <- snakemake@params[["chrcol"]]
@@ -51,7 +51,7 @@ susie_est_resvar <- snakemake@params[["est_res_var"]]
 # Set TRUE to compute correlation from X, FALSE to load pre-computed LD
 compute_ld_from_X <- snakemake@params[["ld_cor"]] # <-- user sets this
 path_ld_matrix <- snakemake@input[["ld"]]
-path_ld_header <- gsub(".matrix", ".headers", path_ld_matrix)
+path_ld_header <- snakemake@input[["ld_snps"]]
 
 # outputs
 out_data_report <- snakemake@output[["data_report"]]

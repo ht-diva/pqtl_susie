@@ -1,9 +1,12 @@
 
 rule run_susieR:
     input:
-        dosage  = rules.subset_pgen.output.dosage,
-        sumstat = ws_path("tmp/{locuseq}_sumstat.csv"),
+        pgen = rules.subset_pgen.output.pgen,
+        pvar = rules.subset_pgen.output.pvar,
+        psam = rules.subset_pgen.output.psam,
+        sumstat = rules.subset_gwas.output.sumstat,
         ld = rules.compute_ld.output.ld,
+        ld_snps = rules.compute_ld.output.headers,
     output:
         data_report = ws_path("susierss/cs_report/{locuseq}.report"),
         cs_summary = ws_path("susierss/cs_summary/{locuseq}.cssum"),
