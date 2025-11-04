@@ -10,10 +10,10 @@ run:
 
 
 # paths
-workspace_path: "results/interval_test"
-path_lb: "/scratch/dariush.ghasemi/projects/pqtl_pipeline_finemap/results/test_interval/collected_loci.csv"
+workspace_path: "results/interval"
+path_lb: "/scratch/dariush.ghasemi/projects/pqtl_pipeline_finemap/results/interval/collected_loci.csv"
 path_gwas: "/exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/outputs"
-genotype: "/scratch/giulia.pontali/genomics_QC_pipeline/results_scratch/pgen/qc_recoded_harmonised/impute_recoded_selected_sample_filter_hq_var_new_id_alleles_"
+genotype: "/exchange/healthds/pQTL/INTERVAL/Genetic_QC_files/pgen/qc_recoded_harmonised/impute_recoded_selected_sample_filter_hq_var_new_id_alleles_"
 path_pheno: "data/INTERVAL_NonImp_residuals_final.txt"
 
 
