@@ -41,7 +41,7 @@ set-resources:
         mem_mb: 2048 + attempt * 2048
         threads: *cores
     run_susieR:
-        mem_mb: 8192 + attempt * 2048
+        mem_mb: int(4096 * (3 ** attempt))
         threads: *cores
     collect_credible_sets:
         mem_mb: 4000 + attempt * 2048
