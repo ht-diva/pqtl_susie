@@ -16,14 +16,8 @@ include: "rules/return_config.smk"
 
 rule all:
     input:
-        #expand(ws_path("tmp/{locuseq}_snps.list"), locuseq = data.locuseq),
-        #expand(ws_path("tmp/{locuseq}_dosage.pgen"), locuseq = data.locuseq),
-        #expand(ws_path("susierss/cs_list/{locuseq}.cslist"), locuseq = data.locuseq),
-        ws_path("susierss/collected_credible_sets.tsv"),
+        ws_path("susierss/combined_credibles.tsv"),
         ws_path("config/config_used.yaml"),
-        #expand(ws_path("tmp/{locuseq}_pheno.csv"), locuseq = data.locuseq)
-        #expand(ws_path("tmp/{locuseq}_query.yaml"), locuseq = data.locuseq),
-        #expand(ws_path("tmp/{locuseq}/{locuseq}_sumstat.csv.gz"), locuseq = data.locuseq)
 
 
 if config.get("run").get("susier"):
@@ -40,10 +34,4 @@ else:
     include: "rules/subset_pgen.smk"
     include: "rules/compute_ld.smk"
     include: "rules/finemapping.smk"
-    
 
-# rule all:
-#     input:
-#         get_final_output(),
-#     resources:
-#         runtime=3,
