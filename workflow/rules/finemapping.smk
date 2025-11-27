@@ -36,7 +36,8 @@ rule collect_credible_sets:
     input:
         expand(ws_path("susierss/cs_list/{locuseq}.cslist"), locuseq = data.locuseq),
     output:
-        ofile = ws_path("susierss/combined_credibles.tsv"),
+        cslist = ws_path("susierss/combined_credibles.tsv"),
+        report = ws_path("susierss/combined_reports.tsv"),
     conda:
         "../envs/susier.yml"
     resources:

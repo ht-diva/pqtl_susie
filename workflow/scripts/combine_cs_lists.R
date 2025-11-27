@@ -4,18 +4,19 @@ suppressMessages(library(tidyverse))
 suppressMessages(library(data.table))
 
 #----------#
-# taking variants file as input
+# loading params
 sets_path <- snakemake@input
-file_path <- snakemake@output[["ofile"]]
+file_path_res <- snakemake@output[["cslist"]]
+file_path_rep <- snakemake@output[["report"]]
 
 #--------------#
-# the path where COJO+cond SNPs are saved
+# results path
 exmpl_path <- as.character(sets_path[1])
 pcmd <- dirname(exmpl_path)
 
 #--------------#
-# scan COJO results for all proteins sequence
-cojo_files <- list.files(
+# scan results for all proteins sequence
+res_files <- list.files(
   pattern = paste0("seq.(\\d+).(\\d+)_(\\d+)_(\\d+)_(\\d+).cslist"),
   path = pcmd,      # the path where the independents snps file live
   recursive = FALSE, # to show the files in subdirectories or subfolders
@@ -35,32 +36,21 @@ input_seqid <- map_dfr(
 
 #--------------#
 # extract seqid from COJO outputs
-seq_list_tbl <- tibble(cojo_files) %>% mutate(seqid = str_extract(cojo_files, "seq.\\d+.\\d+"))
+seq_list_tbl <- tibble(res_files) %>% mutate(seqid = str_extract(res_files, "seq.\\d+.\\d+"))
 
-# select input seqids from all present COJO outputs
-cojo_files_input <- cojo_files[seq_list_tbl$seqid %in% input_seqid$seqid]
+# select input seqids from the existing results
+res_files_input <- res_files[seq_list_tbl$seqid %in% input_seqid$seqid]
 
-#--------------#
-# Merge COJO+cond SNPs characteristics
-cojo_meta <- tibble(
-  data.table::rbindlist(
-    fill = TRUE,
-    lapply(
-      cojo_files_input, 
-      function(x) {
-        data.table::fread(x, data.table=F, fill = TRUE) #%>% 
-        # mutate(
-        #     seqid = stringr::str_split_fixed(basename(x), "_", 2)[,1],
-        #     locus = stringr::str_split_fixed(basename(x), "_locus_", 2)[,2],
-        #     locus = stringr::str_remove_all(locus, "_conditional_snps.tsv")
-        #     )
-    }
-    )
-  )
-)
+# report files based on input results file names
+rep_files_input <- res_files_input %>%
+  str_replace("cs_list", "cs_report") %>% # rename folder, then rename file format
+  str_replace(".cslist", ".report")
 
-#cojo_meta <- cojo_meta %>% arrange(Chr, bp)
+# combine results for the input seqids
+res_combined <- map_dfr(res_files_input, fread)
+rep_combined <- map_dfr(rep_files_input, fread)
 
 #--------------#
 # save the joint results
-write.table(cojo_meta, file = file_path, sep = "\t", quote = F, row.names = F)
+write.table(res_combined, file = file_path_res, sep = "\t", quote = F, row.names = F)
+write.table(rep_combined, file = file_path_rep, sep = "\t", quote = F, row.names = F)
