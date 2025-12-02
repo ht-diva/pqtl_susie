@@ -1,7 +1,8 @@
 
 from pathlib import Path
 import pandas as pd
-
+import os
+import math
 
 # Define input for the rules
 # read loci list
@@ -38,28 +39,23 @@ def get_geno(wildcards):
     filename = f"{path}{chrom}.pgen"
     return str(Path(filename))
 
-# Estimate memory needs for a SuSiE RSS job based on number of SNPs
-def estimate_mem_mb(snp_list_file):
-    """    
-    Memory scales roughly with O(n^2) because SuSiE manipulates
-    the LD matrix (double-precision float).
-    
-    This estimator computes memory for LD matrix: n^2 * 8 bytes
+# Estimate memory needs for a SuSiE RSS job 
+# based on the actual LD file size on disk.
+def estimate_mem_mb(ld_file):
     """
-    # Count SNPs
-    with open(snp_list_file) as f:
-        n_snps = sum(1 for _ in f)
-    
-    # LD matrix size (n*n doubles, 8 bytes each)
-    ld_mb = (n_snps * n_snps * 8) / 1e6
-    
-    # SuSiE overhead + R session + buffers
-    overhead_mb = 1024
-    
-    # Safety factor 25% overhead
-    mem_estimate = ld_mb * 0.25 + overhead_mb
-    
-    # Clamp
-    mem_estimate = max(2048, min(int(mem_estimate), 64000))
-    
-    return mem_estimate
+    Empirical observation:
+        - SuSiE uses ~2.5–3.5 × the file size in peak RAM
+        - For large regions (>20k SNPs), use ×3.5 for safety
+    """
+    ld_size_bytes = os.path.getsize(ld_file)
+    ld_size_gb = ld_size_bytes / 1e9
+
+    # empirical multiplier:
+    # R duplicates objects, SuSiE makes working copies, GC adds overhead
+    multiplier = 7
+
+    mem_gb = ld_size_gb * multiplier + 4   # add 4GB overhead for R
+    mem_mb = int(mem_gb * 1024)
+
+    # clamp to reasonable range
+    return max(mem_mb, 4000)
