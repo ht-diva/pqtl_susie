@@ -1,7 +1,5 @@
 
 rule compute_ld:
-    message:
-        "Compute LD matrix using Plink2 with subset genotype in PGEN."
     input:
         pgen = rules.subset_pgen.output.pgen,
     output:
@@ -13,7 +11,7 @@ rule compute_ld:
     # conda:
     #     "../envs/plink2.yml"
     resources:
-        runtime=lambda wc, attempt: attempt * 30,
+        runtime=lambda wc, attempt: attempt * 600,
     shell:
         """
         source /exchange/healthds/singularity_functions
