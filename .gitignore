@@ -9,6 +9,7 @@ results/
 test/
 logs/
 tiledb/
+plink_ld/
 
 *.log
 dag.png
