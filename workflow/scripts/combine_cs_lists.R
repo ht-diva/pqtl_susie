@@ -29,17 +29,20 @@ input_seqid <- map_dfr(
   sets_path, function(path) {
       base_path = dirname(path)
       file_name = basename(path)
-      seqid = gsub("_.*$", "", file_name) # extract the protein sequence id and remove file format
-  data.frame(base_path, file_name, seqid)
+      seqid_locus = gsub(".cslist$", "", file_name) # extract protein sequence + locus
+  data.frame(base_path, file_name, seqid_locus)
   }
 )
 
 #--------------#
 # extract seqid from COJO outputs
-seq_list_tbl <- tibble(res_files) %>% mutate(seqid = str_extract(res_files, "seq.\\d+.\\d+"))
+seq_list_tbl <- tibble(res_files) %>%
+  mutate(
+    seqid_locus = str_remove(basename(res_files), ".cslist$")
+    )
 
 # select input seqids from the existing results
-res_files_input <- res_files[seq_list_tbl$seqid %in% input_seqid$seqid]
+res_files_input <- res_files[seq_list_tbl$seqid_locus %in% input_seqid$seqid_locus]
 
 # report files based on input results file names
 rep_files_input <- res_files_input %>%
@@ -47,7 +50,7 @@ rep_files_input <- res_files_input %>%
   str_replace(".cslist", ".report")
 
 # combine results for the input seqids
-res_combined <- map_dfr(res_files_input, fread)
+res_combined <- map_dfr(res_files_input, ~ fread(.x, colClasses = c(rep("character", 8))))
 rep_combined <- map_dfr(rep_files_input, fread)
 
 #--------------#
