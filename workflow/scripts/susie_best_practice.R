@@ -403,7 +403,7 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
     snps_pip <- vars %>%
       transmute(
         cs_id = cs,
-        SNPID = sumstat[variable, "SNPID"],
+        SNPID = sumstat$SNPID[variable],
         PIP = variable_prob
       )
     
