@@ -140,20 +140,36 @@ if (study_id == "interval") {
 }
 
 # number of SNPs in GWAS results subset
-n_snp_sumstat <- nrow(sumstat)
+n_snp_sumstat_nofilter <- nrow(sumstat)
+
+# Modify input region sumstat
+sumstat <- sumstat %>%
+  group_by(POS) %>%
+  dplyr::slice_max(MLOG10P, n = 1) %>% # handle multi-allelic variants
+  ungroup()
+
+# number of SNPs after removing duplicate positions
+n_snp_sumstat_nodup <- nrow(sumstat)
+
+message(
+  "✅ Among multi-allelic variants, the most significant is selected.",
+  n_snp_sumstat_nofilter - n_snp_sumstat_nodup,
+  " rows were removed."
+  )
+
 
 # Read psam and pvar
 psam_df <- read.delim(path_psam, header = TRUE, comment.char = "")
 pvar_df <- read.delim(path_pvar, header = TRUE, comment.char = "")
 
 # Read pgen
-pgen <- tryCatch({
-  # Read pgen
-  #pvar <- pgenlibr::NewPvar(path_pvar)
-  NewPgen(path_pgen) #, pvar=pvar
-  }, error = function(e) {
-    stop("❌ Failed to read dosage file: ", e$message)
-})
+# pgen <- tryCatch({
+#   # Read pgen
+#   #pvar <- pgenlibr::NewPvar(path_pvar)
+#   NewPgen(path_pgen) #, pvar=pvar
+#   }, error = function(e) {
+#     stop("❌ Failed to read dosage file: ", e$message)
+# })
 
 #----------------------------------------#
 # --------       Basic QC         -------
@@ -173,20 +189,20 @@ if (length(missing_cols) > 0) {
 
 #-------------# 
 # Check the number of variants and samples
-n_variants <- pgenlibr::GetVariantCt(pgen)
-n_samples  <- pgenlibr::GetRawSampleCt(pgen)
+n_variants <- nrow(pvar_df) #pgenlibr::GetVariantCt(pgen)
+n_samples  <- nrow(psam_df) #pgenlibr::GetRawSampleCt(pgen)
 
 # Extract dosages for all of variants
-dosage <- pgenlibr::ReadList(pgen, 1:n_variants, meanimpute = FALSE)
+#dosage <- pgenlibr::ReadList(pgen, 1:n_variants, meanimpute = FALSE)
 
 # Add variant IDs as column names
-colnames(dosage) <- pvar_df$ID
+#colnames(dosage) <- pvar_df$ID
 
 # Add sample IDs as row names
-rownames(dosage) <- psam_df$IID
+#rownames(dosage) <- psam_df$IID
 
 
-message("✅ Summary stats and dosage files loaded successfully.")
+message("✅ Summary stats and variant files loaded successfully.")
 
 #----------------------------------------#
 # -------     Variant Matching     ------
@@ -204,7 +220,7 @@ message("✅ Overlapping SNPs found: ", n_common_snps)
 
 # Optional: subset both datasets to common SNPs
 sumstat <- sumstat[sumstat$SNPID %in% common_snps, ]
-X <- dosage[, common_snps] %>% as.matrix()
+#X <- dosage[, common_snps] %>% as.matrix()
 
 message("✅ Subsetted to common SNPs. Ready for SuSiE.")
 
@@ -256,6 +272,9 @@ if (compute_ld_from_X) {
     rownames(R) <- colnames(R) <- ld_headers$SNP
     }
 
+# Select only variants in region sumstat
+R <- R[sumstat$SNPID, sumstat$SNPID]
+
 message("✅ LD matrix of dimension: ", nrow(R), "x", ncol(R))
 
 # CHECK SYMMETRY: 
@@ -306,10 +325,11 @@ tag_locus <- sub("^seq\\.\\d+\\.\\d+_", "chr", locuseq)
 data_counts <- data.frame(
   "seqid"         = tag_seqid,
   "locus"         = tag_locus,
-  "n_snp_pgen"    = n_variants,
-  "n_snp_gwas"    = n_snp_sumstat,
-  "n_snp_shared"  = n_common_snps,
-  "n_sample_pgen" = n_samples,
+  "nsnp_pgen"    = n_variants,
+  "nsnp_gwas"    = n_snp_sumstat_nofilter,
+  "nsnp_gwas_nodup" = n_snp_sumstat_nodup,
+  "nsnp_shared"  = n_common_snps,
+  "nsample_pgen" = n_samples,
   "lambda"        = lambda,
   "ld_from_X"     = compute_ld_from_X
 )
