@@ -52,7 +52,7 @@ def estimate_mem_mb(ld_file):
 
     # empirical multiplier:
     # R duplicates objects, SuSiE makes working copies, GC adds overhead
-    multiplier = 7
+    multiplier = 4
 
     mem_gb = ld_size_gb * multiplier + 4   # add 4GB overhead for R
     mem_mb = int(mem_gb * 1024)

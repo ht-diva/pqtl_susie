@@ -26,7 +26,7 @@ rule run_susieR:
         n_gwas = config["sumstat"]["n_samples"],
     resources:
         runtime=lambda wc, attempt: 6000 + attempt * 60,
-        mem_mb=lambda wc, input: estimate_mem_mb(input.ld),
+        mem_mb=lambda wc, input, attempt: estimate_mem_mb(input.ld) + attempt * 2048,
     conda:
         "../envs/susier.yml"
     script:
