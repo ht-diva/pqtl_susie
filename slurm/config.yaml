@@ -13,6 +13,7 @@ keep-going: True
 rerun-incomplete: False
 printshellcmds: True
 scheduler: ilp
+slurm-keep-successful-logs: True
 
 
 default-resources:
