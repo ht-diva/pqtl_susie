@@ -410,6 +410,7 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
     # subset of GWAS results for CS variants
     cs_summary <- sumstat %>%
       left_join(snps_pip, by = "SNPID") %>%
+      left_join(cs[1:4], join_by(cs_id == cs)) %>% # append CS characteristics to sumstat
       filter(cs_id > 0)
     
     # list of CS variants
