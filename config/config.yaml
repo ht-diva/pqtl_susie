@@ -3,18 +3,13 @@ run:
   susier: True
   ld_correlation: False
 
- # The pipe will enable the use of correlation matrix based on LD as specified in link below:
- # https://stephenslab.github.io/susieR/articles/finemapping_summary_statistics.html
- # If set to False (default), it will use the genotypes coded with additive model
- # together with the phenotype to evaluate the RSS model.
-
-
 # paths
-workspace_path: "results/interval"
-path_lb: "/scratch/dariush.ghasemi/projects/pqtl_pipeline_finemap/results/interval/collected_loci.csv"
+workspace_path: "results/interval_cis_b38"
+path_lb: "/home/dariush.ghasemi/13-Apr-26_collected_loci_interval_cis.csv"
 path_gwas: "/exchange/healthds/pQTL/results/INTERVAL/qced_sumstats/outputs"
 genotype: "/exchange/healthds/pQTL/INTERVAL/Genetic_QC_files/pgen/qc_recoded_harmonised/impute_recoded_selected_sample_filter_hq_var_new_id_alleles_"
 path_pheno: "data/INTERVAL_NonImp_residuals_final.txt"
+genomic_key: "/scratch/dariush.ghasemi/projects/pqtl_liftover/results/interval_harm/VCF_lifted/lifted_variants.txt"
 
 
 sumstat:
