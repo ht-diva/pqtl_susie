@@ -31,6 +31,8 @@ suppressPackageStartupMessages({
   library(coloc)
 })
 
+set.seed(777)
+
 #----------------------------------------#
 # -----         User Inputs        ------
 #----------------------------------------#
@@ -52,6 +54,10 @@ susie_est_resvar <- snakemake@params[["est_res_var"]]
 compute_ld_from_X <- snakemake@params[["ld_cor"]] # <-- user sets this
 path_ld_matrix <- snakemake@input[["ld"]]
 path_ld_header <- snakemake@input[["ld_snps"]]
+
+# Genomic build key
+path_liftover <- snakemake@params[["gen_key"]]
+
 
 # outputs
 out_data_report <- snakemake@output[["data_report"]]
@@ -75,7 +81,7 @@ check_file <- function(path, min_size = 1e2) {
   if (is.na(size) || size < min_size) {
     stop(paste("❌ File is empty or too small:", path))
   }
-  message(paste("✅ File exists and size =", round(size/1024, 2), "KB:", path))
+  message(paste("✅ File exists and size =", round(size/1048576, 4), "MB:", path))
   return(TRUE)
 }
 
@@ -115,14 +121,14 @@ n_snp_sumstat <- nrow(sumstat)
 psam_df <- read.delim(path_psam, header = TRUE, comment.char = "")
 pvar_df <- read.delim(path_pvar, header = TRUE, comment.char = "")
 
-# Read pgen
-pgen <- tryCatch({
-  # Read pgen
-  #pvar <- pgenlibr::NewPvar(path_pvar)
-  NewPgen(path_pgen) #, pvar=pvar
-  }, error = function(e) {
-    stop("❌ Failed to read dosage file: ", e$message)
-})
+# # Read pgen
+# pgen <- tryCatch({
+#   #pvar <- pgenlibr::NewPvar(path_pvar)
+#   NewPgen(path_pgen) #, pvar=pvar
+#   }, error = function(e) {
+#     stop("❌ Failed to read dosage file: ", e$message)
+# })
+
 
 #----------------------------------------#
 # --------       Basic QC         -------
@@ -140,20 +146,20 @@ if (length(missing_cols) > 0) {
 
 #-------------# 
 # Check the number of variants and samples
-n_variants <- pgenlibr::GetVariantCt(pgen)
-n_samples  <- pgenlibr::GetRawSampleCt(pgen)
+n_variants <- nrow(pvar_df) #pgenlibr::GetVariantCt(pgen)
+n_samples  <- nrow(psam_df) #pgenlibr::GetRawSampleCt(pgen)
 
-# Extract dosages for all of variants
-dosage <- pgenlibr::ReadList(pgen, 1:n_variants, meanimpute = FALSE)
+# # Extract dosages for all of variants
+# dosage <- pgenlibr::ReadList(pgen, 1:n_variants, meanimpute = FALSE)
+# 
+# # Add variant IDs as column names
+# colnames(dosage) <- pvar_df$ID
+# 
+# # Add sample IDs as row names
+# rownames(dosage) <- psam_df$IID
 
-# Add variant IDs as column names
-colnames(dosage) <- pvar_df$ID
 
-# Add sample IDs as row names
-rownames(dosage) <- psam_df$IID
-
-
-message("✅ Summary stats and dosage files loaded successfully.")
+message("✅ Summary stats file loaded successfully.")
 
 #----------------------------------------#
 # -------     Variant Matching     ------
@@ -171,7 +177,7 @@ message("✅ Overlapping SNPs found: ", n_common_snps)
 
 # Optional: subset both datasets to common SNPs
 sumstat <- sumstat[sumstat$SNPID %in% common_snps, ]
-X <- dosage[, common_snps] %>% as.matrix()
+#X <- dosage[, common_snps] %>% as.matrix()
 
 message("✅ Subsetted to common SNPs. Ready for SuSiE.")
 
@@ -247,6 +253,77 @@ if (!positive_semi_definite) {
 
 
 #----------------------------------------#
+# -----     Transfer to Build 38    -----
+#----------------------------------------#
+
+# Read lifted variants -- map between builds
+lifted_snps <- tryCatch({
+  fread(path_liftover, header = FALSE, col.names = c("chr", "pos_b38", "id_b37"), sep = "\t", data.table = FALSE)
+}, error = function(e) {
+  stop("❌ Failed to read lifted SNPs file: ", e$message)
+})
+
+#-------------#
+# 1. Update GWAS sumstats
+# Add lifted position (hg38)
+sumstat_joined <- sumstat %>%
+  left_join(
+    lifted_snps, 
+    join_by(SNPID == id_b37)) %>%
+  dplyr::mutate(
+    chr = str_remove(chr, "chr"), 
+    id_b38 = str_c(chr, pos_b38, EA, NEA, sep = ":")
+    )
+
+# remove liftover key
+rm(lifted_snps)
+
+# Check for missing mappings
+mis_sumstat <- sumstat_joined %>% dplyr::filter(is.na(id_b38))
+n_mismap <- nrow(mis_sumstat)
+message("⚠️ ", n_mismap, " SNPs in sumstat did not map!")
+
+#-------------#
+# 2. Update LD matrix (R)
+# Create named vector: old_id (b37) -> new_id (b38)
+id_map <- setNames(sumstat_joined$id_b38, sumstat_joined$SNPID)
+
+# Get current SNP names
+ids_b37 <- colnames(R)
+
+# Map to new IDs
+new_names <- id_map[ids_b37]
+
+# Check missing
+if(any(is.na(new_names))) {
+  message("⚠️ Some SNPs in LD matrix did not map!")
+}
+
+# Assign new names (DO NOT reorder)
+colnames(R) <- new_names
+rownames(R) <- new_names
+
+# Remove unmapped SNPs consistently
+keep <- !is.na(new_names)
+R <- R[keep, keep]
+
+# Use position in new build as SNP ID and omit unmapped SNPs from GWAS
+sumstat <- sumstat_joined %>%
+  dplyr::mutate(CHR = chr, POS = pos_b38, SNPID = id_b38) %>%
+  dplyr::select(- chr, - pos_b38, - id_b38) %>%
+  dplyr::filter(SNPID %in% new_names[keep])
+
+
+# Sanity checks: ensure all IDs match between sumstat and R
+if(!all(sumstat$SNPID %in% colnames(R))) {
+  message("⚠️ Mismatch between sumstat and LD matrix SNP IDs!")
+}
+
+rm(sumstat_joined)
+rm(mis_sumstat)
+
+
+#----------------------------------------#
 # -----  Prepare Inputs for SuSiE   -----
 #----------------------------------------#
 
@@ -265,7 +342,7 @@ lambda <- estimate_s_rss(betas/se_betas, R=R, n=n)
 message("✅ The estimated λ is ", lambda)
 
 # extracting below tags from filename helps concatenation later
-locuseq <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
+locuseq   <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
 tag_seqid <- sub("_.*$", "", locuseq)
 tag_locus <- sub("^seq\\.\\d+\\.\\d+_", "chr", locuseq)
 
@@ -273,10 +350,11 @@ tag_locus <- sub("^seq\\.\\d+\\.\\d+_", "chr", locuseq)
 data_counts <- data.frame(
   "seqid"         = tag_seqid,
   "locus"         = tag_locus,
-  "n_snp_pgen"    = n_variants,
-  "n_snp_gwas"    = n_snp_sumstat,
-  "n_snp_shared"  = n_common_snps,
-  "n_sample_pgen" = n_samples,
+  "nsnp_pgen"     = n_variants,
+  "nsnp_gwas"     = n_snp_sumstat,
+  "nsnp_shared"   = n_common_snps,
+  "nsnp_mismap"   = n_mismap,
+  "nsample_pgen"  = n_samples,
   "lambda"        = lambda,
   "ld_from_X"     = compute_ld_from_X
 )
@@ -357,6 +435,7 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
     # subset of GWAS results for CS variants
     cs_summary <- sumstat %>%
       left_join(snps_pip, by = "SNPID") %>%
+      left_join(cs[1:4], join_by(cs_id == cs)) %>% # append CS characteristics to sumstat
       filter(cs_id > 0)
     
     # list of CS variants
