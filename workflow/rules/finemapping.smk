@@ -22,6 +22,7 @@ rule run_susieR:
         est_res_var =config["susieR"]["estimate_residual_variance"],
         chrcol = config.get("sumstat").get("chrcol"),
         ld_cor = config["run"]["ld_correlation"],
+        gen_key = config.get("genomic_key"),
     resources:
         runtime=lambda wc, attempt: 6000 + attempt * 60,
     conda:
