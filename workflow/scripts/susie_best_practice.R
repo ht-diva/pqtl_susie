@@ -140,22 +140,7 @@ if (study_id == "interval") {
 }
 
 # number of SNPs in GWAS results subset
-n_snp_sumstat_nofilter <- nrow(sumstat)
-
-# Modify input region sumstat
-sumstat <- sumstat %>%
-  group_by(POS) %>%
-  dplyr::slice_max(MLOG10P, n = 1) %>% # handle multi-allelic variants
-  ungroup()
-
-# number of SNPs after removing duplicate positions
-n_snp_sumstat_nodup <- nrow(sumstat)
-
-message(
-  "✅ Among multi-allelic variants, the most significant is selected.",
-  n_snp_sumstat_nofilter - n_snp_sumstat_nodup,
-  " rows were removed."
-  )
+n_snp_sumstat <- nrow(sumstat)
 
 
 # Read psam and pvar
@@ -326,8 +311,7 @@ data_counts <- data.frame(
   "seqid"         = tag_seqid,
   "locus"         = tag_locus,
   "nsnp_pgen"    = n_variants,
-  "nsnp_gwas"    = n_snp_sumstat_nofilter,
-  "nsnp_gwas_nodup" = n_snp_sumstat_nodup,
+  "nsnp_gwas"    = n_snp_sumstat,
   "nsnp_shared"  = n_common_snps,
   "nsample_pgen" = n_samples,
   "lambda"        = lambda,
