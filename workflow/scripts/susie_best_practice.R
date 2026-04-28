@@ -31,6 +31,8 @@ suppressPackageStartupMessages({
   library(coloc)
 })
 
+set.seed(777)
+
 #----------------------------------------#
 # -----         User Inputs        ------
 #----------------------------------------#
