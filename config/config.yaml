@@ -10,8 +10,8 @@ run:
 
 
 # paths
-workspace_path: "results/believe_nomirror"
-path_lb: "/exchange/healthds/pQTL/BELIEVE/Working_shared/LB/mapped_LB_gp_ann_va_ann_bl_ann_collapsed_hf_ann_wo_HLA.csv"
+workspace_path: "results/believe_nomir"
+path_lb: "config/believe_loci.csv"
 path_gwas: "/exchange/healthds/pQTL/BELIEVE/harmonized_gwas/"
 genotype:  "/exchange/healthds/pQTL/BELIEVE/harmonized_genotype/pgen/chr"
 path_pheno: "data/INTERVAL_NonImp_residuals_final.txt"
