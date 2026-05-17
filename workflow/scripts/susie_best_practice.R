@@ -252,8 +252,11 @@ message("✅ Subsetted to common SNPs. Ready for SuSiE.")
 if (compute_ld_from_X) {
   message("📈 Computing LD correlation matrix from genotype matrix X ...")
   R <- cor(X, use = "pairwise")
+  ld_size <- round(file.size(path_pgen)/(1024*1024), 2)
   } else {
     message("📥 Loading precomputed LD matrix from PLINK2 output ...")
+    ld_size <- round(file.size(path_ld_matrix)/(1024*1024), 2)
+    
     ld_headers <- fread(path_ld_header, header = FALSE, col.names = "SNP")
     R <- fread(path_ld_matrix) %>% as.matrix()
     rownames(R) <- colnames(R) <- ld_headers$SNP
@@ -321,13 +324,9 @@ data_counts <- data.frame(
   "nsample_pgen" = n_samples,
   "lambda"        = lambda,
   "lambda_warning" = warn_txt,
-  "ld_from_X"     = compute_ld_from_X
+  "ld_from_X"    = compute_ld_from_X,
+  "ld_size_mg"   = ld_size
 )
-
-# saving the report
-write.table(data_counts, file = out_data_report, sep = "\t", row.names = F, quote = F)
-
-message("✅ Saved  input characteristics  to : ", out_data_report)
 
 
 #----------------------------------------#
@@ -463,9 +462,17 @@ message("✅ Analysis done!")
 # Report run time
 end_time <- Sys.time()
 end_time
-elapsed_time <- end_time - start_time
+elapsed_time <- round(as.numeric(end_time - start_time, units="mins"), 3)
 
-message("Run time: ", round(as.numeric(elapsed_time, units="mins"), 3), " minutes\n")
+message("Run time: ", elapsed_time, " minutes\n")
+
+# Append runtime to report
+data_counts$run_time_min <- elapsed_time
+
+# saving the report
+write.table(data_counts, file = out_data_report, sep = "\t", row.names = F, quote = F)
+
+message("✅ Saved  input characteristics  to : ", out_data_report)
 
 
 #-------------# 
