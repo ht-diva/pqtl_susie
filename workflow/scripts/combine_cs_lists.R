@@ -8,6 +8,7 @@ suppressMessages(library(data.table))
 sets_path <- snakemake@input
 file_path_res <- snakemake@output[["cslist"]]
 file_path_rep <- snakemake@output[["report"]]
+file_path_sum <- snakemake@output[["sumstat"]]
 
 #--------------#
 # results path
@@ -35,7 +36,7 @@ input_seqid <- map_dfr(
 )
 
 #--------------#
-# extract seqid from COJO outputs
+# extract seqid from files names
 seq_list_tbl <- tibble(res_files) %>%
   mutate(
     seqid_locus = str_remove(basename(res_files), ".cslist$")
@@ -49,11 +50,17 @@ rep_files_input <- res_files_input %>%
   str_replace("cs_list", "cs_report") %>% # rename folder, then rename file format
   str_replace(".cslist", ".report")
 
+sum_files_input <- res_files_input %>%
+  str_replace("cs_list", "cs_summary") %>%
+  str_replace(".cslist", ".cssum")
+
 # combine results for the input seqids
 res_combined <- map_dfr(res_files_input, ~ fread(.x, colClasses = c(rep("character", 8))))
 rep_combined <- map_dfr(rep_files_input, fread)
+sum_combined <- map_dfr(sum_files_input, fread)
 
 #--------------#
 # save the joint results
 write.table(res_combined, file = file_path_res, sep = "\t", quote = F, row.names = F)
 write.table(rep_combined, file = file_path_rep, sep = "\t", quote = F, row.names = F)
+write.table(sum_combined, file = file_path_sum, sep = "\t", quote = F, row.names = F)

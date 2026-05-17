@@ -39,6 +39,7 @@ rule collect_credible_sets:
     output:
         cslist = ws_path("susierss/combined_credibles.tsv"),
         report = ws_path("susierss/combined_reports.tsv"),
+        sumstat = ws_path("susierss/combined_sumstats.tsv"),
     conda:
         "../envs/susier.yml"
     resources:
