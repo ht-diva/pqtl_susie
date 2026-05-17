@@ -298,8 +298,11 @@ n        <- min(sumstat$N, na.rm = TRUE)
 # ------      Reporting Counts      -----
 #----------------------------------------#
 
-# The estimated λ is
-lambda <- estimate_s_rss(betas/se_betas, R=R, n=n)
+# Capture warning while estimating lambda
+warn_txt <- capture.output(
+  lambda <- estimate_s_rss(z = betas / se_betas, R = R, n = n),
+  type = "message"
+)
 
 message("✅ The estimated λ is ", lambda)
 
@@ -317,6 +320,7 @@ data_counts <- data.frame(
   "nsnp_shared"  = n_common_snps,
   "nsample_pgen" = n_samples,
   "lambda"        = lambda,
+  "lambda_warning" = warn_txt,
   "ld_from_X"     = compute_ld_from_X
 )
 
