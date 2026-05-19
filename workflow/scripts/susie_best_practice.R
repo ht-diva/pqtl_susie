@@ -246,6 +246,34 @@ message("✅ Subsetted to common SNPs. Ready for SuSiE.")
 
 
 #----------------------------------------#
+# -----        Count Variants       -----
+#----------------------------------------#
+
+# Define variant type per row
+sumstat <- sumstat %>%
+  mutate(
+    is_indel = nchar(EA) != 1 | nchar(NEA) != 1,
+    is_snp   = nchar(EA) == 1 & nchar(NEA) == 1
+  )
+
+# Count indels and SNPs
+n_indels <- sum(sumstat$is_indel)
+n_snps   <- sum(sumstat$is_snp)
+
+# Site-level allele counts
+site_counts <- sumstat %>%
+  group_by(CHR, POS) %>%
+  summarise(
+    n_alleles = n_distinct(c(EA, NEA)),
+    .groups = "drop"
+  )
+
+# Count bi-allelic and multi-allelic sites
+n_biallelic    <- sum(site_counts$n_alleles == 2)
+n_multiallelic <- sum(site_counts$n_alleles > 2)
+
+
+#----------------------------------------#
 # -----  Load or Compute LD matrix  -----
 #----------------------------------------#
 
@@ -314,18 +342,24 @@ locuseq <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
 tag_seqid <- sub("_.*$", "", locuseq)
 tag_locus <- sub("^seq\\.\\d+\\.\\d+_", "chr", locuseq)
 
-# reporting numbers of input data 
+# Report input data counts
 data_counts <- data.frame(
-  "seqid"         = tag_seqid,
-  "locus"         = tag_locus,
-  "nsnp_pgen"    = n_variants,
-  "nsnp_gwas"    = n_snp_sumstat,
-  "nsnp_shared"  = n_common_snps,
-  "nsample_pgen" = n_samples,
-  "lambda"        = lambda,
-  "lambda_warning" = warn_txt,
-  "ld_from_X"    = compute_ld_from_X,
-  "ld_size_mg"   = ld_size
+  "seqid"          = tag_seqid,
+  "locus"          = tag_locus,
+  "nsample_pgen"   = n_samples,
+  #"nsample_gwas"  = n_gwas,
+  "nvar_pgen"      = n_variants,
+  "nvar_gwas"      = n_snp_sumstat,
+  "nvar_shared"    = n_common_snps,
+  "nsnps_shared"   = n_snps,
+  "nindels_shared" = n_indels,
+  "nbi_allelic"    = n_biallelic,
+  "nmulti_allelic" = n_multiallelic,
+  "ld_from_X"      = compute_ld_from_X,
+  "ld_size_mg"     = ld_size,
+  "run_time_min"   = NA,
+  "lambda"         = lambda,
+  "lambda_warning" = warn_txt
 )
 
 
@@ -462,6 +496,7 @@ message("✅ Analysis done!")
 # Report run time
 end_time <- Sys.time()
 end_time
+
 elapsed_time <- round(as.numeric(end_time - start_time, units="mins"), 3)
 
 message("Run time: ", elapsed_time, " minutes\n")
@@ -470,7 +505,13 @@ message("Run time: ", elapsed_time, " minutes\n")
 data_counts$run_time_min <- elapsed_time
 
 # saving the report
-write.table(data_counts, file = out_data_report, sep = "\t", row.names = F, quote = F)
+write.table(
+  data_counts,
+  file = out_data_report,
+  sep = "\t",
+  row.names = F,
+  quote = T
+  )
 
 message("✅ Saved  input characteristics  to : ", out_data_report)
 
