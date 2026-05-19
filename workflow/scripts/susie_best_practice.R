@@ -241,8 +241,8 @@ if (compute_ld_from_X) {
   rownames(dosage) <- psam_df$IID
   
   # Define genotype matrix using shared variants
-  # Variants dosage levels placed in columns
-  # All individuals in PGEN file placed in rows
+  #   - Columns: variants dosage levels
+  #   - Rows: all individuals in PGEN file
   X <- dosage[, common_snps] %>% as.matrix()
   
   # Compute LD (r) correlation matrix
@@ -269,7 +269,7 @@ n_snp_sumstat <- nrow(sumstat)
 sumstat <- sumstat[sumstat$SNPID %in% common_snps, ]
 
 message("✅ Overlapping SNPs found: ", n_snp_common)
-message("✅ GWAS & LD files limited common SNPs. Ready for SuSiE.")
+message("✅ GWAS & LD were limited to common SNPs.")
 message("✅ LD matrix of dimension: ", nrow(R), "x", ncol(R))
 
 
@@ -406,7 +406,7 @@ data_counts <- data.frame(
   "nmulti_allelic" = n_multiallelic,
   "ld_from_X"      = compute_ld_from_X,
   "ld_size_mg"     = ld_size,
-  "run_time_min"   = NA,
+  "run_time_min"   = NA_character_,
   "lambda"         = lambda,
   "lambda_warning" = warn_txt
 )
@@ -415,6 +415,8 @@ data_counts <- data.frame(
 #----------------------------------------#
 # -------      Run SuSiE RSS      -------
 #----------------------------------------#
+
+message("▶ Running SuSiE...")
 
 res_rss <- tryCatch(
   susie_rss(
@@ -430,7 +432,7 @@ res_rss <- tryCatch(
   error = err_handling
 )
 
-message("🎉 SuSiE RSS completed successfully.")
+message("🎉 SuSiE completed.")
 
 #----------------------------------------#
 # -----    Extract & Save Results  ------
@@ -562,7 +564,7 @@ write.table(
   quote = T
   )
 
-message("✅ Saved  input characteristics  to : ", out_data_report)
+message("✅ Saved report to: ", out_data_report)
 
 
 #-------------# 
