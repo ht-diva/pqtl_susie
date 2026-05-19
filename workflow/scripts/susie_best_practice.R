@@ -95,15 +95,18 @@ is_strand_ambiguous <- function(a1, a2) {
 
 
 check_file(path_sumstat)
-check_file(path_pgen)
-if (!compute_ld_from_X) { check_file(path_ld_matrix) }
+
+if (compute_ld_from_X){
+  check_file(path_pgen)
+  } else {
+    check_file(path_ld_matrix)
+  }
 
 
 #----------------------------------------#
 # ------         Load Data        -------
 #----------------------------------------#
 
-headers = c("CHR", "POS", "SNPID", "EA", "NEA", "EAF", "N", "BETA", "SE", "MLOG10P", "CHISQ")
 
 # Use fread with explicit arguments to avoid surprises
 if (study_id == "interval") {
@@ -141,26 +144,13 @@ if (study_id == "interval") {
         stop("❌ The study name is incorrect. Please use any of interval/believe/meta in config file.")
 }
 
-# number of SNPs in GWAS results subset
-n_snp_sumstat <- nrow(sumstat)
+message("✅ Summary stats and variant files loaded successfully.")
 
-
-# Read psam and pvar
-psam_df <- read.delim(path_psam, header = TRUE, comment.char = "")
-pvar_df <- read.delim(path_pvar, header = TRUE, comment.char = "")
-
-# Read pgen
-# pgen <- tryCatch({
-#   # Read pgen
-#   #pvar <- pgenlibr::NewPvar(path_pvar)
-#   NewPgen(path_pgen) #, pvar=pvar
-#   }, error = function(e) {
-#     stop("❌ Failed to read dosage file: ", e$message)
-# })
 
 #----------------------------------------#
 # --------       Basic QC         -------
 #----------------------------------------#
+
 # rename column name
 if (study_id == "meta") {
   colnames(sumstat)[which(names(sumstat) == label_chr)] <- "CHR"
@@ -174,42 +164,114 @@ if (length(missing_cols) > 0) {
   stop("❌ Missing required columns in sumstat file: ", paste(missing_cols, collapse = ", "))
 }
 
-#-------------# 
-# Check the number of variants and samples
-n_variants <- nrow(pvar_df) #pgenlibr::GetVariantCt(pgen)
-n_samples  <- nrow(psam_df) #pgenlibr::GetRawSampleCt(pgen)
-
-# Extract dosages for all of variants
-#dosage <- pgenlibr::ReadList(pgen, 1:n_variants, meanimpute = FALSE)
-
-# Add variant IDs as column names
-#colnames(dosage) <- pvar_df$ID
-
-# Add sample IDs as row names
-#rownames(dosage) <- psam_df$IID
-
-
-message("✅ Summary stats and variant files loaded successfully.")
 
 #----------------------------------------#
 # -------     Variant Matching     ------
 #----------------------------------------#
 
-# to avoid allele mismatch
-common_snps <- intersect(sumstat$SNPID, pvar_df$ID)
-n_common_snps <- length(common_snps)
+if (compute_ld_from_X) {
+  
+  ld_size <- NA_character_
+  
+  # Read pgen
+  pgen <- tryCatch({
+    #pvar <- pgenlibr::NewPvar(path_pvar)
+    pgenlibr::NewPgen(path_pgen) #, pvar=pvar
+    }, error = function(e) {
+      stop("❌ Failed to read dosage file: ", e$message) 
+    })
+  
+  # Read psam & pvar
+  psam_df <- read.delim(path_psam, header = TRUE, comment.char = "")
+  pvar_df <- read.delim(path_pvar, header = TRUE, comment.char = "")
+  
+  # Cross variants in GWAS & PGEN/LD to avoid allele mismatch
+  common_snps  <- intersect(sumstat$SNPID, pvar_df$ID)
+  
+  } else {
+    
+    # Report LD file size along with data counts
+    ld_size <- round(file.size(path_ld_matrix)/(1024*1024), 2)
+  
+    # Read SNPs in pre-computed LD file
+    ld_header <- fread(path_ld_header, header = FALSE, col.names = "SNP")
+    
+    R <- tryCatch({
+      fread(path_ld_matrix, header = FALSE, sep = "\t", data.table = FALSE)
+    }, error = function(e) {
+      stop("❌ Failed to read LD file: ", e$message)
+    })
+    
+    R <- as.matrix(R)
+    rownames(R) <- colnames(R) <- ld_header$SNP
+    
+    # Cross variants to avoid allele mismatch
+    common_snps  <- intersect(sumstat$SNPID, ld_header$SNP)
 
-if (n_common_snps == 0) {
+}
+
+#-------------#
+
+n_snp_common <- length(common_snps)
+
+if (n_snp_common == 0) {
   stop("❌ No overlapping SNPs between sumstat and dosage files.")
 }
 
-message("✅ Overlapping SNPs found: ", n_common_snps)
 
-# Optional: subset both datasets to common SNPs
+#----------------------------------------#
+# -----  Load or Compute LD matrix  -----
+#----------------------------------------#
+
+if (compute_ld_from_X) {
+  
+  message("📈 Computing LD correlation matrix from genotype matrix X ...")
+  
+  # Count number of variants & samples in raw data
+  n_variants <- nrow(pvar_df) # Or → pgenlibr::GetVariantCt(pgen)
+  n_samples  <- nrow(psam_df) # Or → pgenlibr::GetRawSampleCt(pgen)
+  
+  # Extract dosages for all of variants
+  dosage <- pgenlibr::ReadList(pgen, 1:n_variants, meanimpute = FALSE)
+  
+  # Add variant IDs as column names
+  colnames(dosage) <- pvar_df$ID
+  
+  # Add sample IDs as row names
+  rownames(dosage) <- psam_df$IID
+  
+  # Define genotype matrix using shared variants
+  # Variants dosage levels placed in columns
+  # All individuals in PGEN file placed in rows
+  X <- dosage[, common_snps] %>% as.matrix()
+  
+  # Compute LD (r) correlation matrix
+  R <- cor(X, use = "pairwise")
+  
+  } else{
+    
+    message("📥 Loading precomputed LD matrix from PLINK2 output ...")
+    
+    n_variants <- NA_character_
+    n_samples  <- NA_character_
+    
+    # Select only variants in region sumstat
+    R <- R[common_snps, common_snps]
+
+}
+
+#-------------#
+
+# Number of variants in GWAS
+n_snp_sumstat <- nrow(sumstat)
+
+# Subset both datasets to common SNPs
 sumstat <- sumstat[sumstat$SNPID %in% common_snps, ]
-#X <- dosage[, common_snps] %>% as.matrix()
 
-message("✅ Subsetted to common SNPs. Ready for SuSiE.")
+message("✅ Overlapping SNPs found: ", n_snp_common)
+message("✅ GWAS & LD files limited common SNPs. Ready for SuSiE.")
+message("✅ LD matrix of dimension: ", nrow(R), "x", ncol(R))
+
 
 #----------------------------------------#
 # ---------- Allele Alignment ----------
@@ -274,28 +336,10 @@ n_multiallelic <- sum(site_counts$n_alleles > 2)
 
 
 #----------------------------------------#
-# -----  Load or Compute LD matrix  -----
+# -----      Inspect LD matrix      -----
 #----------------------------------------#
 
-if (compute_ld_from_X) {
-  message("📈 Computing LD correlation matrix from genotype matrix X ...")
-  R <- cor(X, use = "pairwise")
-  ld_size <- round(file.size(path_pgen)/(1024*1024), 2)
-  } else {
-    message("📥 Loading precomputed LD matrix from PLINK2 output ...")
-    ld_size <- round(file.size(path_ld_matrix)/(1024*1024), 2)
-    
-    ld_headers <- fread(path_ld_header, header = FALSE, col.names = "SNP")
-    R <- fread(path_ld_matrix) %>% as.matrix()
-    rownames(R) <- colnames(R) <- ld_headers$SNP
-    }
-
-# Select only variants in region sumstat
-R <- R[sumstat$SNPID, sumstat$SNPID]
-
-message("✅ LD matrix of dimension: ", nrow(R), "x", ncol(R))
-
-# CHECK SYMMETRY: 
+# Inspect LD matrix symmetry 
 if (!isSymmetric(R, tol = 1e-8)) {
   stop("❌ The LD matrix is not symmetric. Please check your input.")
 }
@@ -326,7 +370,7 @@ n        <- min(sumstat$N, na.rm = TRUE)
 
 
 #----------------------------------------#
-# ------      Reporting Counts      -----
+# ----   Quantify LD Misalignment    ----
 #----------------------------------------#
 
 # Capture warning while estimating lambda
@@ -336,6 +380,11 @@ warn_txt <- capture.output(
 )
 
 message("✅ The estimated λ is ", lambda)
+
+
+#----------------------------------------#
+# ------      Reporting Counts      -----
+#----------------------------------------#
 
 # extracting below tags from filename helps concatenation later
 locuseq <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
@@ -350,7 +399,7 @@ data_counts <- data.frame(
   #"nsample_gwas"  = n_gwas,
   "nvar_pgen"      = n_variants,
   "nvar_gwas"      = n_snp_sumstat,
-  "nvar_shared"    = n_common_snps,
+  "nvar_shared"    = n_snp_common,
   "nsnps_shared"   = n_snps,
   "nindels_shared" = n_indels,
   "nbi_allelic"    = n_biallelic,
