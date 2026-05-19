@@ -373,13 +373,22 @@ n        <- min(sumstat$N, na.rm = TRUE)
 # ----   Quantify LD Misalignment    ----
 #----------------------------------------#
 
+warn_txt <- NA_character_
+
 # Capture warning while estimating lambda
-warn_txt <- capture.output(
-  lambda <- estimate_s_rss(z = betas / se_betas, R = R, n = n),
-  type = "message"
+withCallingHandlers(
+  {
+    lambda <- estimate_s_rss(z = betas / se_betas, R = R, n = n)
+  },
+  message = function(m) {                 # Let it continue to the sink
+    clean <- gsub("\033\\[[0-9;]*m", "", conditionMessage(m)) # omit HTML coloring warning
+    warn_txt <<- c(warn_txt, clean)       # save text
+    message(conditionMessage(m))          # re-emit original (with color) → goes to log
+    invokeRestart("muffleMessage")        # suppress duplicate print
+  }
 )
 
-message("✅ The estimated λ is ", lambda)
+message("✅ The estimated λ for LD mismatch is ", lambda)
 
 
 #----------------------------------------#
