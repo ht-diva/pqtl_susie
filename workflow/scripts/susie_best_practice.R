@@ -373,6 +373,20 @@ n        <- min(sumstat$N, na.rm = TRUE)
 # ----   Quantify LD Misalignment    ----
 #----------------------------------------#
 
+# Features of eigen values for LD matrix
+ld_eigen  <- eigen(R, symmetric = TRUE, only.values = TRUE)$values
+ld_ev_min <- min(ld_eigen)
+ld_ev_neg <- sum(ld_eigen < 0)
+ld_evcond <- max(ld_eigen) / min(abs(ld_eigen))
+
+message(
+  "✅ Minimum eigenValue: ", ld_ev_min,
+  "; Number of negative ev: ",  ld_ev_neg,
+  "; Condition number: ", ld_evcond
+  )
+
+#-------------#
+
 warn_txt <- NA_character_
 
 # Capture warning while estimating lambda
@@ -413,9 +427,12 @@ data_counts <- data.frame(
   "nindels_shared" = n_indels,
   "nbi_allelic"    = n_biallelic,
   "nmulti_allelic" = n_multiallelic,
+  "run_time_min"   = NA_character_,
   "ld_from_X"      = compute_ld_from_X,
   "ld_size_mg"     = ld_size,
-  "run_time_min"   = NA_character_,
+  "ld_ev_min"      = ld_ev_min,
+  "ld_ev_negative" = ld_ev_neg,
+  "ld_ev_condition"= ld_evcond,
   "lambda"         = lambda,
   "lambda_warning" = warn_txt
 )
