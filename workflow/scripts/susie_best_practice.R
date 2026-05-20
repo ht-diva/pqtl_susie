@@ -48,6 +48,7 @@ suppressPackageStartupMessages({
   library(pgenlibr) # to load PGEN file
   library(Rfast) #to calculate correlation matrix faster
   library(coloc)
+  library(ggplot2)
 })
 
 set.seed(777)
@@ -82,6 +83,7 @@ out_cs_summary <- snakemake@output[["cs_summary"]]
 out_cs_list <- snakemake@output[["cs_list"]]
 out_cs_rds <- snakemake@output[["cs_rds"]]
 out_cs_annot <- snakemake@output[["cs_annot"]]
+out_kriging <- snakemake@output[["kriging"]]
 
 
 # Extract tags from filename helps concatenation later
@@ -428,6 +430,28 @@ withCallingHandlers(
 )
 
 message("✅ Estimated λ measuring LD mismatch: ", signif(lambda, 4))
+
+#-------------#
+
+# Conditional z-score diagnostics
+withCallingHandlers(
+  {
+    condz <- kriging_rss(z = z_scores, R = R, n = n)
+  },
+  message = function(m) invokeRestart("muffleMessage")
+  )
+
+# Add lambda annotation to diagnostic plot
+plt_kriging <- condz$plot +
+  ggtitle(
+    label    = paste("SeqID:", tag_seqid, "- Region:", tag_locus),
+    subtitle = bquote(lambda == .(signif(lambda, 4)))
+    )
+
+# Store plot
+ggsave(filename = out_kriging, plt_kriging, width = 6, height = 5)
+
+message("✅ Saved LD kriging plot to: ", out_kriging)
 
 
 #----------------------------------------#

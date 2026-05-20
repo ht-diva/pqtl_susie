@@ -13,6 +13,7 @@ rule run_susieR:
         cs_rds  = ws_path("susierss/cs_fitness/{locuseq}_fit.rds"),
         cs_annot= ws_path("susierss/cs_fitness/{locuseq}_annot.rds"),
         cs_list = ws_path("susierss/cs_list/{locuseq}.cslist"),
+        kriging = ws_path("susierss/kriging/{locuseq}.jpg"),
     log:
         ws_path("logs/susieR/{locuseq}.log"),
     params:
