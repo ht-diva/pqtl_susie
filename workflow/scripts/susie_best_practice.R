@@ -11,8 +11,27 @@ dir.create(dirname(log_file), recursive = TRUE, showWarnings = FALSE)
 
 # Redirect stdout and stderr to the log file
 log_con <- file(log_file, open = "wt")
+
+# Safety reset in case of prior crash
+tryCatch({
+  while (sink.number()  > 0) sink()
+}, error = function(e) invisible(NULL))
+
 sink(log_con, type = "output")   # redirect stdout
 sink(log_con, type = "message")  # redirect messages / stderr
+
+# Reset sinks at the end
+on.exit({
+  sink(type = "message")   # restore message sink first
+  sink(type = "output")    # then output sink
+  close(log_con)
+}, add = TRUE)
+
+
+# Suppress warning for kriging plot
+options(lifecycle_verbosity = "quiet")  
+
+#-------------#
 
 start_time <- Sys.time()
 start_time
@@ -63,6 +82,12 @@ out_cs_summary <- snakemake@output[["cs_summary"]]
 out_cs_list <- snakemake@output[["cs_list"]]
 out_cs_rds <- snakemake@output[["cs_rds"]]
 out_cs_annot <- snakemake@output[["cs_annot"]]
+
+
+# Extract tags from filename helps concatenation later
+locuseq <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
+tag_seqid <- sub("_.*$", "", locuseq)
+tag_locus <- sub("^seq\\.\\d+\\.\\d+_", "chr", locuseq)
 
 
 #----------------------------------------#
@@ -366,6 +391,7 @@ if (!positive_semi_definite) {
 
 betas    <- sumstat$BETA
 se_betas <- sumstat$SE
+z_scores <- betas / se_betas
 n        <- min(sumstat$N, na.rm = TRUE)
 
 
@@ -387,32 +413,26 @@ message(
 
 #-------------#
 
-warn_txt <- NA_character_
+warntxt <- NA_character_
 
 # Capture warning while estimating lambda
 withCallingHandlers(
   {
-    lambda <- estimate_s_rss(z = betas / se_betas, R = R, n = n)
+    lambda <- estimate_s_rss(z = z_scores, R = R, n = n)
   },
   message = function(m) {                 # Let it continue to the sink
-    clean <- gsub("\033\\[[0-9;]*m", "", conditionMessage(m)) # omit HTML coloring warning
-    warn_txt <<- c(warn_txt, clean)       # save text
-    message(conditionMessage(m))          # re-emit original (with color) → goes to log
+    warntxt <<- gsub("\033\\[[0-9;]*m|\\n", "", conditionMessage(m)) # omit HTML coloring warning
+    message("⚠️ ", conditionMessage(m))   # re-emit original (with color) → goes to log
     invokeRestart("muffleMessage")        # suppress duplicate print
   }
 )
 
-message("✅ The estimated λ for LD mismatch is ", lambda)
+message("✅ Estimated λ measuring LD mismatch: ", signif(lambda, 4))
 
 
 #----------------------------------------#
 # ------      Reporting Counts      -----
 #----------------------------------------#
-
-# extracting below tags from filename helps concatenation later
-locuseq <- sub("_sumstat\\.csv$", "", basename(path_sumstat))
-tag_seqid <- sub("_.*$", "", locuseq)
-tag_locus <- sub("^seq\\.\\d+\\.\\d+_", "chr", locuseq)
 
 # Report input data counts
 data_counts <- data.frame(
@@ -434,7 +454,7 @@ data_counts <- data.frame(
   "ld_ev_negative" = ld_ev_neg,
   "ld_ev_condition"= ld_evcond,
   "lambda"         = lambda,
-  "lambda_warning" = warn_txt
+  "lambda_warning" = warntxt
 )
 
 
@@ -592,9 +612,3 @@ write.table(
 
 message("✅ Saved report to: ", out_data_report)
 
-
-#-------------# 
-# Reset sinks at the end
-sink(type = "message")
-sink(type = "output")
-close(log_con)
