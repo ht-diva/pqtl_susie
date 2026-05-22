@@ -1,10 +1,10 @@
 executor: slurm
-jobs: 15
+jobs: 250
 software-deployment-method:
    - conda
    - apptainer
 retries: 0
-max-jobs-per-second: 15
+max-jobs-per-second: 50
 max-status-checks-per-second: 1
 local-cores: 1
 cores: &cores 4
