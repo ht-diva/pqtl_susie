@@ -10,7 +10,7 @@ run:
 
 
 # paths
-workspace_path: "results/believe_nomir"
+workspace_path: "results/believe_estVarF"
 path_lb: "config/believe_loci.csv"
 path_gwas: "/exchange/healthds/pQTL/BELIEVE/harmonized_gwas/"
 genotype:  "/exchange/healthds/pQTL/BELIEVE/harmonized_genotype/pgen/chr"
@@ -31,5 +31,5 @@ susieR:
  iter: 1000
  L: 10
  extension: 100000
- estimate_residual_variance: TRUE
+ estimate_residual_variance: FALSE
 
