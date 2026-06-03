@@ -57,7 +57,7 @@ sum_files_input <- res_files_input %>%
 # combine results for the input seqids
 res_combined <- map_dfr(res_files_input, ~ fread(.x, colClasses = "character"))
 rep_combined <- map_dfr(rep_files_input, ~ fread(.x, colClasses = "character"))
-sum_combined <- map_dfr(sum_files_input, fread)
+sum_combined <- map_dfr(sum_files_input, ~ fread(.x, colClasses = "character"))
 
 #--------------#
 # save the joint results
