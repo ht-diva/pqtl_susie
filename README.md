@@ -3,6 +3,9 @@ A snakemake pipeline for fine-mapping protein QTLs using SuSiE
 Here we run SuSiE using on the meta-analysis GWAS results via in-sample LD.
 
 ## Outputs
+1. Characteristics of the input genomic regions + diagnostic indices
+2. The 99% credible sets for each fine-mapped region
+3. Subset of GWAS sumstats for the credible sets in the region
 
 ### 1. Characteristics of the genomic regions
 
