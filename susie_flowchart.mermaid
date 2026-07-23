@@ -1,0 +1,38 @@
+flowchart TD
+    A[Start: read Snakemake inputs & params] --> B[Set up logging, load libraries, set.seed 777]
+    B --> C["Read summary stats\n(format depends on study_id: interval / believe / meta)"]
+    C --> D["Basic QC:\ncheck required columns present"]
+    D --> E{compute_ld_from_X?}
+
+    E -->|TRUE| F["Load PGEN/PVAR/PSAM\nintersect SNPs with sumstat"]
+    F --> G["Read dosage matrix X\ncompute LD: R = cor(X)"]
+
+    E -->|FALSE| H["Load precomputed LD matrix\n+ SNP header file"]
+    H --> I["Intersect SNPs with sumstat\nsubset LD matrix"]
+
+    G --> J["Subset sumstat & LD matrix\nto common SNPs"]
+    I --> J
+
+    J --> K["Count variant types:\nSNPs vs indels\nbi-allelic vs multi-allelic sites"]
+    K --> L{"LD matrix valid?\n(symmetric & positive semi-definite)"}
+    L -->|No| Z1["Stop with error"]
+    L -->|Yes| M["Compute z-scores\nz = BETA / SE"]
+
+    M --> N["LD diagnostics:\neigenvalues, estimate_s_rss (lambda),\nkriging_rss (conditional z-scores)"]
+    N --> O["Save kriging diagnostic plot (PNG)"]
+    N --> P["Run susie_rss()\nfine-mapping model"]
+
+    P --> Q["Extract credible sets (CS) & PIPs\nfrom model summary"]
+    Q --> R{Any credible sets found?}
+    R -->|No| S["Write placeholder\n'no_credible' rows"]
+    R -->|Yes| T["Build cs_summary & cs_list\nSave PIP plot (PNG)"]
+
+    S --> U[Write output files]
+    T --> U
+    O --> U
+
+    U --> V["cs_summary.tsv\n(sumstat rows for CS variants + PIP)"]
+    U --> W["cs_list.tsv\n(one row per CS: SNPs, log10BF, avg/min r2)"]
+    U --> X["cs_rds\n(full susie_rss model object)"]
+    X --> Y["cs_annot (.rds)\ncoloc::annotate_susie output\n(for downstream colocalization)"]
+    U --> AA["data_report.tsv\nQC & diagnostic summary\n(N SNPs, LD size, lambda, runtime...)"]
