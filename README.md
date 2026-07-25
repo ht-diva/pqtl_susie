@@ -2,12 +2,22 @@
 A snakemake pipeline for fine-mapping protein QTLs using SuSiE
 Here we run SuSiE using on the meta-analysis GWAS results via in-sample LD.
 
-## Outputs
-1. Characteristics of the input genomic regions + diagnostic indices
-2. The 99% credible sets for each fine-mapped region
-3. Subset of GWAS sumstats for the credible sets in the region
 
-### 1. Characteristics of the genomic regions
+## Outputs
+
+Output table indicates what to expect from the pipeline.
+| No. | File | Content |
+|:---:|:------------------|:--------|
+|1.   | `data_report.tsv` | Features of genomic regions including QC/diagnostic counts, LD condition number, λ, runtime |
+|2.   | `cs_list.tsv`     | One row per 99% credible set (SNPs, log10BF, avg/min r²) |
+|3.   | `cs_summary.tsv`  | Per-SNP rows for variants in credible sets, with PIP and full GWAS sumstats |
+|4.   | `cs_rds`	      | Full susie_rss model object |
+|5.   | `cs_annot`	      | LD-annotated model, ready for coloc |
+|6.   | `*_kriging.png`	  | LD-mismatch diagnostic plot |
+|7.   | `*_report.png`	  | PIP plot per credible set |
+
+
+#### 1. Characteristics of the genomic regions
 
 Table: `combined_reports.tsv`
 |seqid        |locus                    |nsample_pgen |nvar_pgen | nvar_gwas| nvar_shared| nsnps_shared| nindels_shared| nbi_allelic| nmulti_allelic| run_time_min|ld_from_X | ld_size_mg| ld_ev_min| ld_ev_negative|ld_ev_condition      |    lambda|lambda_warning |
@@ -41,7 +51,7 @@ Description of the reported features:
 |lambda_warning  |                                         |
 
 
-### 2. The 99% credible sets for each fine-mapped genomic region
+#### 2. The 99% credible sets for each fine-mapped genomic region
 
 |seqid        |locus                    | cs_id| cs_log10bf| cs_avg_r2| cs_min_r2| ncs|cs_snps  |
 |:------------|:------------------------|---:|--------:|----:|----:|---:|:---------------|
@@ -57,7 +67,7 @@ Description of the reported features:
 |seq.10606.34 |chr2_89119570_96189561   |   4| 3.25e+04| 0.99| 0.99|   2|2:89125000:A:T,2:89126000:G:T |
 |seq.10606.34 |chr2_89119570_96189561   |   2| 1.95e+04| 1.00| 1.00|   1|2:89869000:A:C  |
 
-### 3. GWAS sumstats of the credible sets
+#### 3. GWAS sumstats of the credible sets
 Table: `combined_cssums.tsv`
 
 <>
