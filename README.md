@@ -2,6 +2,8 @@
 A snakemake pipeline for fine-mapping protein QTLs using SuSiE
 Here we run SuSiE using on the meta-analysis GWAS results via in-sample LD.
 
+## Inputs
+User inputs and configuration params are introduced here.
 
 ## Outputs
 
