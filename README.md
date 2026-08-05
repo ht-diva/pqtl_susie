@@ -76,10 +76,13 @@ Table: `combined_cssums.tsv`
 
 
 
-#### 6. 
-<img stc="kriging_plot_chr12_6971024_7074644.png" alt="Kriging plot along with Lambda">
+#### 6. LD-mismatch diagnostic plot
+<p align="left">
+    <img  width=450  src="kriging_plot_chr12_6971024_7074644.png" alt="Kriging plot along with Lambda" />
+<p/>
 
-
+#### 7. PIP plot per credible set
+<img  width=450  src="/Believe_GWAS_with_fastGWA.png"         alt="Credible sets plot" />
 
 ## SuSiE Best Practice
 Flowchart below portrays the logics implemented in `scripts/susie_best_practice.R` broken into stages, from reading the inputs and paramters to generation of fine-mapping results.
