@@ -72,8 +72,10 @@ Description of the reported features:
 #### 3. GWAS sumstats of the credible sets
 Table: `combined_cssums.tsv`
 
-<>
-
+|GWAS columns | cs_id | PIP  |
+|-------------| ----- | ---- |
+|             |       |      |
+|             |       |      |
 
 
 #### 6. LD-mismatch diagnostic plot
