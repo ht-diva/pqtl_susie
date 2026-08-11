@@ -1,6 +1,8 @@
 # pqtl_susie
-A snakemake pipeline for fine-mapping protein QTLs using SuSiE
-Here we run SuSiE using on the meta-analysis GWAS results via in-sample LD.
+A snakemake pipeline for SuSiE fine-mapping protein QTLs
+Here we run SuSiE using GWAS results and in-sample LD.
+
+*Note: This workflow including readme is currently under active development.*
 
 ## Inputs
 User inputs and configuration params are introduced here.
@@ -133,3 +135,10 @@ flowchart TD
 ## Workflow example
 
 <img src="dag.svg" alt="example workflow">
+
+## Acknowledgements
+This pipeline is developed by Dariush Ghasemi and Claudia Giambartolomei. Special thanks to:
+- Giulia Pontali
+- Deborah Zani
+- Gianmauro Cuccuru
+- Solene Cadiou
