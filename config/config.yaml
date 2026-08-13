@@ -1,7 +1,10 @@
 run:
-  susie: False
   susier: True
   ld_correlation: False
+study: "gnh"
+ld:
+  source: external
+  directory: "ld/ld_matrix"
 
  # The pipe will enable the use of correlation matrix based on LD as specified in link below:
  # https://stephenslab.github.io/susieR/articles/finemapping_summary_statistics.html
@@ -10,9 +13,9 @@ run:
 
 
 # paths
-workspace_path: "results/believe_estVarF"
-path_lb: "config/believe_loci.csv"
-path_gwas: "/exchange/healthds/pQTL/BELIEVE/harmonized_gwas/"
+workspace_path: "results/gnh_93"
+path_lb: "config/gnh_93.csv"
+path_gwas: "../pqtl_coloc/results/believe_cis_quant/tmp/gwas" #"/exchange/healthds/pQTL/BELIEVE/harmonized_gwas/"
 genotype:  "/exchange/healthds/pQTL/BELIEVE/harmonized_genotype/pgen/chr"
 path_pheno: "data/INTERVAL_NonImp_residuals_final.txt"
 
@@ -21,7 +24,7 @@ sumstat:
   pvalcol: "MLOG10P"
   snpcol: "SNPID"
   chrcol: "CHR"
-  study: "believe"
+  ncol: "meta_total_samples"
   n_samples: 9216
 
 

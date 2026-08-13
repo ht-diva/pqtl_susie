@@ -9,6 +9,8 @@ min_version("8.4.1")
 configfile: "config/config.yaml"
 config_copy="config/config.yaml"
 
+study = config.get("study")
+run_susier = config.get("run", {}).get("susier", False)
 
 include: "rules/common.smk"
 include: "rules/return_config.smk"
@@ -20,15 +22,15 @@ rule all:
         ws_path("config/config_used.yaml"),
 
 
-if config.get("run").get("susier"):
-
+if run_susier:
+  if study == "gnh":
+    include: "rules/finemapping.smk"
+  else:
     include: "rules/subset_gwas.smk"
     include: "rules/subset_pgen.smk"
     include: "rules/compute_ld.smk"
     include: "rules/finemapping.smk"
-
 else:
-
     include: "rules/query_gwas.smk"
     include: "rules/extrating_pheno.smk"
     include: "rules/subset_pgen.smk"

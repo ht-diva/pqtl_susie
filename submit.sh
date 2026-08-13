@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name susie
-#SBATCH --output %j_believe.log
+#SBATCH --output %j_gnh_test.log
 #SBATCH --partition cpuq
 #SBATCH --cpus-per-task 1
 #SBATCH --mem 6G
