@@ -96,7 +96,17 @@ tag_locus <- sub("^seq\\.\\d+\\.\\d+_", "chr", locuseq)
 # -------     Helper Functions     ------
 #----------------------------------------#
 
+susie_warnings <- character()
+
+wrn_handling <- function(w) {
+  cleaned_warn <- gsub("\033\\[[0-9;]*m|\\n", "", conditionMessage(w))
+  susie_warnings <<- c(susie_warnings, cleaned_warn)
+  message("⚠️ ", conditionMessage(w))
+  invokeRestart("muffleWarning")
+}
+
 err_handling <- function(e) { stop("❌ SuSiE failed: ", e$message) }
+
 
 check_file <- function(path, min_size = 1e2) {
   if (!file.exists(path)) {
@@ -461,7 +471,8 @@ data_counts <- data.frame(
   "ld_from_X"      = compute_ld_from_X,
   "ld_size_mg"     = ld_size,
   "lambda"         = lambda,
-  "lambda_warning" = warntxt
+  "lambda_warning" = warntxt,
+  "susie_warning"  = NA_character_
 )
 
 
@@ -472,17 +483,20 @@ data_counts <- data.frame(
 message("▶ Running SuSiE...")
 
 res_rss <- tryCatch(
-  susie_rss(
-    bhat = betas,
-    shat = se_betas,
-    n = n,
-    R = R,
-    L = susie_L,
-    max_iter = susie_iter,
-    min_abs_corr = susie_min_abs_cor,
-    estimate_residual_variance = susie_est_resvar # TRUE if using in-sample LD
-  ),
-  error = err_handling
+  withCallingHandlers(
+    {
+      susie_rss(
+        bhat = betas,
+        shat = se_betas,
+        n = n,
+        R = R,
+        L = susie_L,
+        max_iter = susie_iter,
+        min_abs_corr = susie_min_abs_cor,
+        estimate_residual_variance = susie_est_resvar # TRUE if using in-sample LD
+      )
+    }, warning = wrn_handling
+  ), error = err_handling
 )
 
 message("🎉 SuSiE completed.")
@@ -607,6 +621,12 @@ message("Run time: ", elapsed_time, " minutes\n")
 
 # Append runtime to report
 data_counts$run_time_min <- elapsed_time
+
+data_counts$susie_warning <- if (length(susie_warnings) > 0) {
+  paste(susie_warnings, collapse = " | ")
+  } else {
+  NA_character_
+}
 
 # saving the report
 write.table(
