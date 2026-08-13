@@ -5,6 +5,12 @@ import os
 import math
 
 # Define input for the rules
+isutdy = config["study"]
+igeno = config.get("genotype")
+gdir  = config.get("path_gwas")
+ld_src = config["ld"]["source"]
+ld_dir = config["ld"]["directory"]
+
 # read loci list
 lb = pd.read_csv(config["path_lb"])
 
@@ -27,16 +33,19 @@ def get_locus(wildcards):
     return str(data.loc[wildcards, "locus"])
 
 # return GWAS summary results 
-def get_gwas(wildcards):
-    seqid = data.loc[wildcards, "seqid"]
-    file_path = f"{seqid}/{seqid}.gwaslab.tsv.gz"
-    return str(Path(config.get("path_gwas"), file_path))
+def get_gwas(wc):
+    seqid = data.loc[wc.locuseq, "seqid"]
+    
+    if istudy == "gnh":
+        return f'{gdir}/{wc.locuseq}/{wc.locuseq}_genesandhealth_v010_quantitative_traits_median_values_f5ff31e8c6.csv.gz'
+    #file_path = f"{seqid}/{seqid}.gwaslab.tsv.gz"
+    #return str(Path(gdir, file_path))
+    return f'{gdir}/{seqid}/{seqid}.gwaslab.tsv.gz'
 
 # return genotype
 def get_geno(wildcards):
     chrom = data.loc[wildcards, "chr"]
-    path = config.get("genotype")
-    filename = f"{path}{chrom}.pgen"
+    filename = f"{igeno}{chrom}.pgen"
     return str(Path(filename))
 
 # Estimate memory needs for a SuSiE RSS job 
@@ -59,3 +68,25 @@ def estimate_mem_mb(ld_file):
 
     # clamp to reasonable range
     return max(mem_mb, 4000)
+
+# Accepted studies
+# STUDY_LDFILE = {
+#     "believe": "{chrom}_qced_new_id_alleles",
+#     "interval": "",
+#     "meta": "",
+#     "Meta_Interval":,
+#     "gnh":  
+# }
+
+def get_ld(wc):
+    if ld_src == "external":
+        locus = data.loc[wc.locuseq, "locus"]
+        return f'{ld_dir}/{locus}_ld.matrix'
+    return rules.compute_ld.output.ld
+
+def get_header(wc):
+    if ld_src == "external":
+        locus = data.loc[wc.locuseq, "locus"]
+        return f'{ld_dir}/{locus}_ld.header'
+    return rules.compute_ld.output.headers
+

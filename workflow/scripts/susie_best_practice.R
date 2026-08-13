@@ -41,6 +41,7 @@ start_time
 #----------------------------------------#
 
 suppressPackageStartupMessages({
+  library(R.utils) # to import compressed inputs
   library(dplyr)
   library(stringr)
   library(data.table)  # For fast I/O
@@ -64,6 +65,7 @@ path_psam <- snakemake@input[["psam"]]
 
 # Load parameters for susieR model
 label_chr <- snakemake@params[["chrcol"]]
+label_n <- snakemake@params[["ncol"]]
 susie_min_abs_cor <- snakemake@params[["min_abs_corr"]]
 susie_iter <- snakemake@params[["iter"]]
 susie_L <- snakemake@params[["L"]]
@@ -159,10 +161,10 @@ if (study_id == "interval") {
     # define sample size manually
     sumstat$N <- n_gwas
     
-    } else if (study_id == "meta") {
+    } else if (study_id %in% c("meta","gnh")) {
       
       sumstat <- tryCatch({
-        fread(path_sumstat, header = TRUE, sep = "\t", data.table = FALSE)
+        fread(path_sumstat, header = TRUE, data.table = FALSE)
         }, error = function(e) {
           stop("❌ Failed to read sumstat file: ", e$message)
           })
@@ -181,6 +183,10 @@ message("✅ Summary stats and variant files loaded successfully.")
 # rename column name
 if (study_id == "meta") {
   colnames(sumstat)[which(names(sumstat) == label_chr)] <- "CHR"
+}
+
+if (study_id == "gnh") {
+  colnames(sumstat)[which(names(sumstat) == label_n)] <- "N"
 }
 
 # Check mandatory columns in summary stats

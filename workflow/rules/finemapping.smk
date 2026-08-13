@@ -1,12 +1,14 @@
 
 rule run_susieR:
     input:
-        pgen = rules.subset_pgen.output.pgen,
-        pvar = rules.subset_pgen.output.pvar,
-        psam = rules.subset_pgen.output.psam,
-        sumstat = rules.subset_gwas.output.sumstat,
-        ld = rules.compute_ld.output.ld,
-        ld_snps = rules.compute_ld.output.headers,
+        #pgen = rules.subset_pgen.output.pgen,
+        #pvar = rules.subset_pgen.output.pvar,
+        #psam = rules.subset_pgen.output.psam,
+        #sumstat = rules.subset_gwas.output.sumstat,
+        sumstat = get_gwas,
+        ld = get_ld,
+        ld_snps = get_header,
+        #ld_snps = lambda wc, output: get_ld.replace(".matrix", ".header"),
     output:
         data_report = ws_path("susierss/cs_report/{locuseq}.report"),
         cs_summary = ws_path("susierss/cs_summary/{locuseq}.cssum"),
@@ -22,8 +24,9 @@ rule run_susieR:
         min_abs_corr=config["susieR"]["min_abs_corr"],
         est_res_var =config["susieR"]["estimate_residual_variance"],
         chrcol = config.get("sumstat").get("chrcol"),
+        ncol = config.get("sumstat").get("ncol"),
         ld_cor = config["run"]["ld_correlation"],
-        study  = config["sumstat"]["study"],
+        study  = config["study"],
         n_gwas = config["sumstat"]["n_samples"],
     resources:
         runtime=lambda wc, attempt: 6000 + attempt * 60,
