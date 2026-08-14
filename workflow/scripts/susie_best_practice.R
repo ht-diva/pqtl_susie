@@ -416,7 +416,7 @@ warntxt <- NA_character_
 # Capture warning while estimating lambda
 withCallingHandlers(
   {
-    lambda <- estimate_s_rss(z = z_scores, R = R, n = n)
+    lambda <- estimate_s_rss(z = z_scores, R = R) # n = n adjusts for sample size
   },
   message = function(m) {                 # Let it continue to the sink
     warntxt <<- gsub("\033\\[[0-9;]*m|\\n", "", conditionMessage(m)) # omit HTML coloring warning
@@ -432,7 +432,7 @@ message("✅ Estimated λ measuring LD mismatch: ", signif(lambda, 4))
 # Conditional z-score diagnostics
 withCallingHandlers(
   {
-    condz <- kriging_rss(z = z_scores, R = R, n = n)
+    condz <- kriging_rss(z = z_scores, R = R) # n = n adjusts for sample size
   },
   message = function(m) invokeRestart("muffleMessage")
   )
@@ -486,8 +486,8 @@ res_rss <- tryCatch(
   withCallingHandlers(
     {
       susie_rss(
-        bhat = betas,
-        shat = se_betas,
+        z = z_scores,
+        z_method = "score", # "score" assumes z (from mixed model) are on PVE scale, so no adjustment is applied.
         n = n,
         R = R,
         L = susie_L,
