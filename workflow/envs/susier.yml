@@ -5,7 +5,8 @@ channels:
   - defaults
 dependencies:
   - r-base=4.5
-  - r-susier=0.14.2
+  - r-R.utils=2.13.0
+  - r-susier=0.16.6
   - r-tidyverse
   - r-dplyr
   - r-stringr
