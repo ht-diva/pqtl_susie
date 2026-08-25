@@ -44,20 +44,13 @@ suppressPackageStartupMessages({
   library(dplyr)
   library(stringr)
   library(data.table)  # For fast I/O
+  library(susieR)
   library(pgenlibr) # to load PGEN file
   library(Rfast) #to calculate correlation matrix faster
   library(coloc)
   library(ggplot2)
-  library(remotes)
 })
 
-# Install latest susieR version from Github if not installed
-
-if (!requireNamespace("susieR", quietly = TRUE)) {
-  remotes::install_github("stephenslab/susieR")
-}
-
-library(susieR)
 
 set.seed(777)
 

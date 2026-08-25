@@ -4,9 +4,11 @@ channels:
   - r
   - defaults
 dependencies:
-  - r-base=4.5
+  - r-base=4.4.3
   - r-R.utils=2.13.0
-  - r-susier=0.16.6
+  - r-remotes=2.5.0         # GitHub installations
+  - r-cpp11armadillo=0.4.6  # susieR dependencies
+  - r-rfast=2.1.5.2         # susieR dependencies
   - r-tidyverse
   - r-dplyr
   - r-stringr
@@ -15,7 +17,6 @@ dependencies:
   - r-ggplot2
   - r-ggpubr
   - r-data.table
-  - r-rfast=2.1.5.1
   - r-markdown
   - r-pgenlibr=0.5.3
   - r-coloc=5.2.3
