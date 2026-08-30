@@ -1,6 +1,6 @@
 
 # =============================
-# SuSiE Fine-mapping Input Loader
+# SuSiE Fine-mapping Log
 # =============================
 
 # Get log path from Snakemake, fallback if missing
