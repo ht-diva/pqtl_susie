@@ -445,11 +445,6 @@ plt_kriging <- condz$plot +
     subtitle = bquote(lambda == .(signif(lambda, 4)))
     )
 
-# Store plot
-ggsave(filename = out_kriging, plt_kriging, width = 6, height = 5)
-
-message("✅ Saved LD kriging plot to: ", out_kriging)
-
 
 #----------------------------------------#
 # ------      Reporting Counts      -----
@@ -566,15 +561,9 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
         seqid = tag_seqid, # store seqid and locus in CS list
         locus = tag_locus,
         ncs = str_count(variable, ",") + 1  # number of variants in each set
-      ) %>% # only remove 'variable', indicating CS indices
+      ) %>% # only removed 'variable', indicating CS indices
       select(seqid, locus, cs_id, cs_log10bf, cs_avg_r2, cs_min_r2, ncs, cs_snps)
     
-    
-    # create a plot name and directory
-    oplot <- gsub("report","png", out_data_report)
-    dir.create(dirname(oplot), recursive = T, showWarnings = FALSE)
-    
-    png(filename = oplot, height = 5.5, width = 7, units = "in", res = 300)
     
     # plot credible sets
     susie_plot(
@@ -587,9 +576,19 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
       main = paste("SeqID:", tag_seqid, "\nRegion:", tag_locus)
     )
     
-    dev.off()
-    message("✅ PIP plot for credible sets saved to: ", oplot)
 }
+
+
+#----------------------------------------#
+# ------       Visualizations      ------
+#----------------------------------------#
+
+
+
+# Store multi-panel plot
+ggsave(filename = out_kriging, plt_kriging, width = 9, height = 7.75, dpi = 200)
+message("✅ Saved susie visualizations to: ", out_kriging)
+
 
 #-------------#
 # save GWAS summary for cs variants
