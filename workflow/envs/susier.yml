@@ -16,6 +16,8 @@ dependencies:
   - r-glue
   - r-ggplot2
   - r-ggpubr
+  - r-ggplotify
+  - r-ggcorrplot
   - r-data.table
   - r-markdown
   - r-pgenlibr=0.5.3
