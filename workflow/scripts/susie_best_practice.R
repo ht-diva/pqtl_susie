@@ -415,7 +415,7 @@ n        <- min(sumstat$N, na.rm = TRUE)
 # ----   Quantify LD Misalignment    ----
 #----------------------------------------#
 
-warntxt <- NA_character_
+warntxt <- character()
 
 # Capture warning while estimating lambda
 withCallingHandlers(
@@ -446,11 +446,11 @@ plt_kriging <- condz$plot +
   annotate(
     "text",
     label = paste0("λ = ", signif(lambda, 4)),
-    hjust = "left",
-    vjust = "top",
+    hjust = "right",
+    vjust = "bottom",
     size = 4,
-    x = -Inf,
-    y = Inf
+    x = Inf,
+    y = -Inf
   ) +
   labs(
     title = "LD matrix consistency with Z-scores"
@@ -653,16 +653,17 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
 # Regional plot
 plt_lz <- sumstat %>%
   ggplot(aes(x = POS, y = MLOG10P)) +
-  geom_point(size = 3, color = "#FDC700", shape = 16, alpha = .7) +
+  geom_point(size = 3, color = "#095F54", shape = 16, alpha = .7) +
   geom_point(data = cs_sum_plot, aes(color = cs_id), size = 4, shape = 21, stroke = 2) +
   scale_x_continuous(labels = function(x) round(x/1e6, 2)) +
+  scale_color_discrete() +
   labs(
     title = paste("Region:", locuseq),
     x = "Genomic Position (Mb)"
   ) +
   theme_light() +
   theme(
-    legend.position = c(.94, .85),
+    legend.position = c(.90, .45),
     legend.background = element_blank(),
     plot.title = element_text(size = 10, face = 2, hjust = 0.5),
     axis.title = element_text(size = 12),
