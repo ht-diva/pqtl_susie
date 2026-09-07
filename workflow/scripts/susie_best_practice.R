@@ -49,6 +49,9 @@ suppressPackageStartupMessages({
   library(Rfast) #to calculate correlation matrix faster
   library(coloc)
   library(ggplot2)
+  library(ggplotify)
+  library(ggcorrplot)
+  library(ggpubr)
 })
 
 
@@ -440,10 +443,15 @@ withCallingHandlers(
 
 # Add lambda annotation to diagnostic plot
 plt_kriging <- condz$plot +
-  ggtitle(
-    label    = paste("SeqID:", tag_seqid, "- Region:", tag_locus),
-    subtitle = bquote(lambda == .(signif(lambda, 4)))
-    )
+  labs(
+    title = paste0("LD matrix consistency with Z-scores (λ=", signif(lambda, 4), ")")
+  ) +
+  theme_light() +
+  theme(
+    plot.title = element_text(size = 10, face = 2, hjust = 0.5),
+    axis.title = element_text(size = 12),
+    panel.background = element_blank()
+  )
 
 
 #----------------------------------------#
@@ -534,6 +542,26 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
     cs_snps = NA_character_
   )
   
+  plt_cs <- ggplot2::ggplot() +
+    ggplot2::annotate(
+      "text",
+      x = 0.5,
+      y = 0.5,
+      label = "No credible set identified",
+      size = 5,
+      hjust = 0.5,
+      vjust = 0.5
+    ) +
+    ggplot2::xlim(0, 1) +
+    ggplot2::ylim(0, 1) +
+    ggplot2::labs(
+      title = "Posterior Inclusion Probablity of variants"
+    ) +
+    ggplot2::theme_void() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 14)
+    )
+  
   } else {
     
     # list of the entire SNPs with PIP
@@ -550,13 +578,23 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
       left_join(cs[1:4], join_by(cs_id == cs)) %>% # append CS characteristics to sumstat
       filter(cs_id > 0)
     
+    cs_sum_plot <- cs_summary %>% mutate(
+      cs_id = factor(
+        cs_id,
+        levels = sort(unique(cs_id)),
+        labels = paste0("L", sort(unique(cs_id))),
+        ordered = TRUE
+      ))
+    
     # list of CS variants
     cs_list <- cs_summary %>%
       summarize(
         cs_snps = paste(SNPID, collapse = ","),
         .by = cs_id
         ) %>%
-      full_join(cs, join_by(cs_id == cs)) %>% # add impurity indices
+      full_join(
+        cs,
+        join_by(cs_id == cs)) %>% # add impurity indices
       mutate(
         seqid = tag_seqid, # store seqid and locus in CS list
         locus = tag_locus,
@@ -566,15 +604,35 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
     
     
     # plot credible sets
-    susie_plot(
-      res_rss,
-      y = "PIP",
-      b = betas,
-      xlab = "Variants",
-      add_bar = FALSE,
-      add_legend = TRUE,
-      main = paste("SeqID:", tag_seqid, "\nRegion:", tag_locus)
-    )
+    plt_cs <- ggplotify::as.ggplot(function() {
+      
+      par(
+        mar = c(7,5,3,3),
+        bg = "white",
+        fg = "black"
+        )
+      
+      susie_plot(
+        res_rss,
+        y = "PIP",
+        b = betas,
+        xlab = "Variants",
+        add_bar = FALSE,
+        add_legend = TRUE,
+        cex.axis = .75
+        #main = paste("SeqID:", tag_seqid, "\nRegion:", tag_locus)
+      )
+    })
+    
+    plt_cs <- plt_cs +
+      labs(
+        title = "Posterior Inclusion Probablity of variants"
+      ) +
+      theme(
+        plot.title = element_text(size = 10, face = 2, hjust = 0.5),
+        plot.background  = element_rect(fill = "white", colour = NA),
+        panel.background = element_rect(fill = "white", colour = NA)
+      )
     
 }
 
@@ -583,10 +641,104 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
 # ------       Visualizations      ------
 #----------------------------------------#
 
+# Regional plot
+plt_lz <- sumstat %>%
+  ggplot(aes(x = POS, y = MLOG10P)) +
+  geom_point(size = 3, color = "#FDC700", shape = 16, alpha = .7) +
+  geom_point(data = cs_sum_plot, aes(color = cs_id), size = 4, shape = 21, stroke = 2) +
+  scale_x_continuous(labels = function(x) round(x/1e6, 2)) +
+  labs(
+    title = paste("Region:", locuseq),
+    x = "Genomic Position (Mb)"
+  ) +
+  theme_light() +
+  theme(
+    legend.position = c(.94, .85),
+    legend.background = element_blank(),
+    plot.title = element_text(size = 10, face = 2, hjust = 0.5),
+    axis.title = element_text(size = 12),
+    axis.text = element_text(size = 9),
+    axis.ticks.length = unit(2.5, "mm")
+  )
+
+
+# CS LD Correlation
+# Flag one credible sets
+if (length(cs$cs) >= 2) {
+  
+  # Calculate CS correlation
+  cs_ld <- susieR::get_cs_correlation(res_rss, Xcorr = R)
+  
+  # Numerical ordering: L1, L2, L3, ...
+  cs_order <- order(
+    as.numeric(sub("^L", "", rownames(cs_ld)))
+  )
+  
+  cs_ld <- cs_ld[cs_order, cs_order]
+  
+  # Correlation plot
+  plt_cs_ld <- ggcorrplot::ggcorrplot(
+    cs_ld,
+    method = "square",
+    type = "lower",
+    lab = TRUE,
+    lab_size = 3,
+    tl.cex = 10, # axis text
+    digits = 2,
+    colors = c("#3B4CC0", "white", "#B40426"),
+    outline.color = "white",
+    ggtheme = ggplot2::theme_minimal()
+  ) +
+    labs(
+      title = "LD correlation between credible sets",
+      x = NULL,
+      y = NULL
+    ) +
+    theme(
+      plot.title = element_text(size = 10, face = 2, hjust = 0.5),
+      panel.background = element_blank()
+    )
+  
+  } else {
+  
+  # Only one credible set → no pairwise LD correlation exists
+  plt_cs_ld <- ggplot2::ggplot() +
+    ggplot2::annotate(
+      "text",
+      x = 0.5,
+      y = 0.5,
+      label = "Only one credible set\nNo pairwise LD correlation",
+      size = 5,
+      hjust = 0.5,
+      vjust = 0.5
+    ) +
+    ggplot2::xlim(0, 1) +
+    ggplot2::ylim(0, 1) +
+    ggplot2::labs(
+      title = "LD correlation between credible sets"
+    ) +
+    ggplot2::theme_void() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 14)
+    )
+}
+
+
+# Combine plots
+plt_joint <- ggpubr::ggarrange(
+  plt_lz,
+  plt_kriging,
+  plt_cs,
+  plt_cs_ld,
+  nrow = 2,
+  ncol = 2,
+  #align = "hv",
+  heights = c(1, 1)
+)
 
 
 # Store multi-panel plot
-ggsave(filename = out_kriging, plt_kriging, width = 9, height = 7.75, dpi = 200)
+ggsave(filename = out_kriging, plt_joint, width = 9, height = 7.75, dpi = 200)
 message("✅ Saved susie visualizations to: ", out_kriging)
 
 
