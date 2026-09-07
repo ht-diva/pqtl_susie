@@ -443,8 +443,17 @@ withCallingHandlers(
 
 # Add lambda annotation to diagnostic plot
 plt_kriging <- condz$plot +
+  annotate(
+    "text",
+    label = paste0("λ = ", signif(lambda, 4)),
+    hjust = "left",
+    vjust = "top",
+    size = 4,
+    x = -Inf,
+    y = Inf
+  ) +
   labs(
-    title = paste0("LD matrix consistency with Z-scores (λ=", signif(lambda, 4), ")")
+    title = "LD matrix consistency with Z-scores"
   ) +
   theme_light() +
   theme(
