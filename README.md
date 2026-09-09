@@ -17,8 +17,7 @@ Output table indicates what to expect from the pipeline.
 |3.   | `cs_summary.tsv`  | Per-SNP rows for variants in credible sets, with PIP and full GWAS sumstats |
 |4.   | `cs_rds`	      | Full susie_rss model object |
 |5.   | `cs_annot`	      | LD-annotated model, ready for coloc |
-|6.   | `*_kriging.png`	  | LD-mismatch diagnostic plot |
-|7.   | `*_report.png`	  | PIP plot per credible set |
+|6.   | `*_kriging.png`	  | Overview of SuSiE results |
 
 
 #### 1. Characteristics of the genomic regions
@@ -80,13 +79,13 @@ Table: `combined_cssums.tsv`
 |             |       |      |
 
 
-#### 6. LD-mismatch diagnostic plot
-<p align="left">
-    <img  width=450  src="kriging_plot_chr12_6971024_7074644.png" alt="Kriging plot along with Lambda" />
-<p/>
+#### 6. Overview of SuSiE results
 
-#### 7. PIP plot per credible set
-<img  width=450  src="/Believe_GWAS_with_fastGWA.png"         alt="Credible sets plot" />
+For a successful run, we expect the pipe to create all the charts below.
+
+<p align="left">
+    <img  width=450  src="docs/plots/seq.9253.52_9_132740402_133566789.jpg" alt="top-left: Annotated regional association plot; top-right: Kriging plot annotated by Lambda assessing LD-GWAS consistency; bottom-left: Credible sets plot with posteriors probabilities; bottom-right: LD correlation plot of credible sets" />
+<p/>
 
 ## SuSiE Best Practice
 Flowchart below portrays the logics implemented in `scripts/susie_best_practice.R` broken into stages, from reading the inputs and paramters to generation of fine-mapping results.
@@ -138,7 +137,7 @@ flowchart TD
 
 ## Acknowledgements
 This pipeline is developed by Dariush Ghasemi and Claudia Giambartolomei. Special thanks to:
-- Giulia Pontali
 - Deborah Zani
 - Gianmauro Cuccuru
+- Giulia Pontali
 - Solene Cadiou
