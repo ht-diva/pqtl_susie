@@ -24,7 +24,6 @@ rule run_susieR:
         chrcol = config.get("sumstat").get("chrcol"),
         ld_cor = config["run"]["ld_correlation"],
         study  = config["sumstat"]["study"],
-        n_gwas = config["sumstat"]["n_samples"],
     resources:
         runtime=lambda wc, attempt: 6000 + attempt * 60,
         mem_mb=lambda wc, input, attempt: estimate_mem_mb(input.ld) + attempt * 2048,

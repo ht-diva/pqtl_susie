@@ -73,7 +73,6 @@ susie_iter <- snakemake@params[["iter"]]
 susie_L <- snakemake@params[["L"]]
 susie_est_resvar <- snakemake@params[["est_res_var"]]
 study_id <- snakemake@params[["study"]]
-n_gwas <- snakemake@params[["n_gwas"]]
 
 
 # Set TRUE to compute correlation from X, FALSE to load pre-computed LD
@@ -162,7 +161,7 @@ if (study_id == "interval") {
   
   } else if (study_id == "believe") {
     
-    headers <- c("CHR", "POS", "SNPID", "EA", "NEA", "EAF", "BETA", "SE", "P", "MLOG10P", "Z")
+    headers <- c("CHR", "POS", "SNPID", "EA", "NEA", "EAF", "BETA", "SE", "P", "MLOG10P", "N", "Z")
     
     sumstat <- tryCatch({
       fread(path_sumstat, header = FALSE, col.names = headers, sep = "\t", data.table = FALSE)
@@ -170,8 +169,6 @@ if (study_id == "interval") {
         stop("❌ Failed to read sumstat file: ", e$message)
         })
     
-    # define sample size manually
-    sumstat$N <- n_gwas
     
     } else if (study_id == "meta") {
       
@@ -472,7 +469,6 @@ data_counts <- data.frame(
   "seqid"          = tag_seqid,
   "locus"          = tag_locus,
   "nsample_pgen"   = n_samples,
-  #"nsample_gwas"  = n_gwas,
   "nvar_pgen"      = n_variants,
   "nvar_gwas"      = n_snp_sumstat,
   "nvar_shared"    = n_snp_common,
