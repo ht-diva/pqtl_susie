@@ -29,7 +29,8 @@ def get_locus(wildcards):
 # return GWAS summary results 
 def get_gwas(wildcards):
     seqid = data.loc[wildcards, "seqid"]
-    file_path = f"{seqid}/{seqid}.gwaslab.tsv.gz"
+    #file_path = f"{seqid}/{seqid}.gwaslab.tsv.gz"
+    file_path = f"bgeno_assoc_phen_{seqid}_res/bgeno_assoc_phen_{seqid}_res.gwaslab.tsv.gz"
     return str(Path(config.get("path_gwas"), file_path))
 
 # return genotype
