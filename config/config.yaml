@@ -10,9 +10,9 @@ run:
 
 
 # paths
-workspace_path: "results/believe_estVarF"
-path_lb: "config/believe_loci.csv"
-path_gwas: "/exchange/healthds/pQTL/BELIEVE/harmonized_gwas/"
+workspace_path: "results/believe_bgen"
+path_lb: "config/believe_loci_bgen.csv"
+path_gwas: "/exchange/healthds/pQTL/BELIEVE/harmonized_gwas_bgen/"
 genotype:  "/exchange/healthds/pQTL/BELIEVE/harmonized_genotype/pgen/chr"
 path_pheno: "data/INTERVAL_NonImp_residuals_final.txt"
 
@@ -22,7 +22,6 @@ sumstat:
   snpcol: "SNPID"
   chrcol: "CHR"
   study: "believe"
-  n_samples: 9216
 
 
 # SusieR parameters
