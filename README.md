@@ -7,6 +7,36 @@ Here we run SuSiE using GWAS results and in-sample LD.
 ## Inputs
 User inputs and configuration params are introduced here.
 
+```YAML
+run:
+  susie: False
+  susier: True
+  ld_correlation: False
+
+# paths
+workspace_path: "results/mydata"
+path_lb: "config/myloci.csv"
+path_gwas: "/exchange/healthds/pQTL/BELIEVE/harmonized_gwas_bgen/"
+genotype:  "/exchange/healthds/pQTL/BELIEVE/harmonized_genotype/pgen/chr"
+path_pheno: "data/INTERVAL_NonImp_residuals_final.txt"
+
+
+sumstat:
+  pvalcol: "MLOG10P"
+  snpcol: "SNPID"
+  chrcol: "CHR"
+  study: "believe"
+
+
+# SusieR parameters
+susieR:
+ min_abs_corr: 0.5
+ iter: 1000
+ L: 10
+ extension: 100000
+ estimate_residual_variance: FALSE
+```
+
 ## Outputs
 
 Output table indicates what to expect from the pipeline.
