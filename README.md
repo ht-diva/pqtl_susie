@@ -77,9 +77,6 @@ Description of the reported features:
 |run_time_min    |                                         |
 |ld_from_X       |                                         |
 |ld_size_mg      |                                         |
-|ld_ev_min       |                                         |
-|ld_ev_negative  |                                         |
-|ld_ev_condition |                                         |
 |lambda          | Index value for LD-GWAS mismatch, [0,1) |
 |lambda_warning  |                                         |
 
