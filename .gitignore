@@ -12,7 +12,7 @@ tiledb/
 plink_ld/
 
 *.log
-dag.png
+docs/dag.png
 
 # loci file
 config/*.csv
