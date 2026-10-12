@@ -163,7 +163,7 @@ flowchart TD
 
 ## Workflow example
 
-<img src="dag.svg" alt="example workflow">
+<img src="docs/dag.svg" alt="example workflow">
 
 ## Acknowledgements
 This pipeline is developed by Dariush Ghasemi and Claudia Giambartolomei. Special thanks to:
@@ -171,3 +171,5 @@ This pipeline is developed by Dariush Ghasemi and Claudia Giambartolomei. Specia
 - Gianmauro Cuccuru
 - Giulia Pontali
 - Solene Cadiou
+- Laura Bondi
+- Emanuele Di Angelantonio
