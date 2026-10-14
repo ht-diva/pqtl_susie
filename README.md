@@ -1,6 +1,6 @@
 # pqtl_susie
 A snakemake pipeline for SuSiE fine-mapping protein QTLs
-Here we run SuSiE using GWAS results and in-sample LD.
+This workflow deploys a Bayesian fine-mapping approach (link to SuSiE paper) on GWAS summary statistics and in-sample LD.
 
 *Note: This workflow including readme is currently under active development.*
 
