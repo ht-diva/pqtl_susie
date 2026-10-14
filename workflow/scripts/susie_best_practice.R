@@ -750,6 +750,13 @@ plt_joint <- ggpubr::ggarrange(
   nrow = 2,
   ncol = 2,
   #align = "hv",
+  labels = c("a", "b", "c", "d"),
+  font.label = list(
+    size = 14,
+    color = "black",
+    face = "bold",
+    family = NULL
+    ),
   heights = c(1, 1)
 )
 
