@@ -564,7 +564,7 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
     ) +
     ggplot2::theme_void() +
     ggplot2::theme(
-      plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 14)
+      plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 10)
     )
   
   } else {
@@ -650,7 +650,6 @@ if (is.null(cs$cs) || length(cs$cs) == 0) {
 plt_lz <- sumstat %>%
   ggplot(aes(x = POS, y = MLOG10P)) +
   geom_point(size = 3, color = "#095F54", shape = 16, alpha = .7) +
-  geom_point(data = cs_sum_plot, aes(color = cs_id), size = 4, shape = 21, stroke = 2) +
   scale_x_continuous(labels = function(x) round(x/1e6, 2)) +
   scale_color_discrete() +
   labs(
@@ -659,7 +658,7 @@ plt_lz <- sumstat %>%
   ) +
   theme_light() +
   theme(
-    legend.position = c(.90, .45),
+    legend.position = c(.05, .45),
     legend.background = element_blank(),
     plot.title = element_text(size = 10, face = 2, hjust = 0.5),
     axis.title = element_text(size = 12),
@@ -667,6 +666,18 @@ plt_lz <- sumstat %>%
     axis.ticks.length = unit(2.5, "mm")
   )
 
+
+# Handle regions with no credible sets
+if (!is.null(cs$cs) || length(cs$cs) != 0) {
+  plt_lz <- plt_lz +
+    geom_point(
+      data = cs_sum_plot,
+      aes(color = cs_id),
+      size = 4,
+      shape = 21,
+      stroke = 1
+      )
+}
 
 # CS LD Correlation
 # Flag one credible sets
@@ -725,7 +736,7 @@ if (length(cs$cs) >= 2) {
     ) +
     ggplot2::theme_void() +
     ggplot2::theme(
-      plot.title = ggplot2::element_text(hjust = 0.5, face = "bold", size = 14)
+      plot.title = ggplot2::element_text(size = 10, hjust = 0.5, face = "bold")
     )
 }
 
