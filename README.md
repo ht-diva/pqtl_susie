@@ -14,18 +14,18 @@ run:
   ld_correlation: False
 
 # paths
-workspace_path: "results/mydata"
-path_lb: "config/myloci.csv"
-path_gwas: "/exchange/healthds/pQTL/BELIEVE/harmonized_gwas_bgen/"
-genotype:  "/exchange/healthds/pQTL/BELIEVE/harmonized_genotype/pgen/chr"
-path_pheno: "data/INTERVAL_NonImp_residuals_final.txt"
+workspace_path: "/path/to/your/output/directory"
+path_lb: "/path/to/your/loci.csv"
+path_gwas: "/path/to/your/harmonized/gwas/"
+genotype:  "/path/to/your/harmonized/genotype/split/by/chr"
+path_pheno: NULL
 
 
 sumstat:
   pvalcol: "MLOG10P"
   snpcol: "SNPID"
   chrcol: "CHR"
-  study: "believe"
+  study: "YOUR_STUDY_NAME"
 
 
 # SusieR parameters
