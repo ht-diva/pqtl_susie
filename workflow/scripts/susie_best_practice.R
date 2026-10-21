@@ -377,25 +377,24 @@ n_multiallelic <- sum(site_counts$n_alleles > 2)
 # -----      Inspect LD matrix      -----
 #----------------------------------------#
 
-# Inspect LD matrix symmetry 
+# Inspect squareness, symmetry, and diagonal of the LD matrix.
+if (!is.matrix(R) || nrow(R) != ncol(R)) {
+  stop("LD matrix is not square.")
+}
+
+if (any(!is.finite(R))) {
+  stop("❌ LD matrix contains NA, NaN or Inf.")
+}
+
 if (!isSymmetric(R, tol = 1e-8)) {
-  stop("❌ The LD matrix is not symmetric. Please check your input.")
+  stop("❌ LD matrix is not symmetric. Please check your input.")
 }
 
-# Check Positive semi-definiteness: Cholesky factorization 
-# of a real symmetric positive-definite square matrix
-positive_semi_definite <- TRUE
-tryCatch({
-  invisible(chol(R))   # will fail if not positive-definit
-  }, error = function(e) {
-    positive_semi_definite <- FALSE
-})
-
-if (!positive_semi_definite) {
-  stop("❌ The LD matrix is not positive semi-definite. SuSiE requires PSD LD matrix.")
-} else {
-  message("✅ The LD matrix is symmetric and positive semi-definite.")
+if (any(abs(diag(R) - 1) > 1e-4)) {
+  stop("❌ LD matrix diagonal is not approximately 1.")
 }
+
+message("✅ LD matrix passed basic checks.")
 
 
 #----------------------------------------#
