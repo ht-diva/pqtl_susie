@@ -488,6 +488,8 @@ data_counts <- data.frame(
   "ld_from_X"      = compute_ld_from_X,
   "ld_size_mg"     = ld_size,
   "lambda"         = lambda,
+  "cs_attainable"  = NA_character_,
+  "cs_remained"    = NA_character_,
   "lambda_warning" = warntxt,
   "susie_warning"  = NA_character_
 )
@@ -524,12 +526,30 @@ message("🎉 SuSiE completed.")
 
 # full model summary
 full_res <- summary(res_rss)
+cs   <- full_res$cs    # containing CS impurity indices
+vars <- full_res$vars  # containing CS Posterior Inclusion Probabilities
 
 # Credible sets
 #cs <- susie_get_cs(res_rss, X = NULL) # issue #257: generates more credible sets as it applies NO impurity filter
 
-cs   <- full_res$cs    # containing CS impurity indices
-vars <- full_res$vars  # containing CS Posterior Inclusion Probabilities
+# Number of CS before susie internally impose impurity filter
+cs_noisy <- susieR::susie_get_cs(
+  res_rss,
+  X = NULL,
+  Xcorr = R,
+  min_abs_corr = NULL
+)
+
+data_counts$cs_attainable <- length(cs_noisy$cs_index)
+data_counts$cs_remained   <- length(cs$cs)
+
+message(
+  "📊 SuSiE obtaind ",
+  data_counts$cs_attainable, " credible sets. ",
+  data_counts$cs_remained, " remained after impurity filter = ",
+  susie_min_abs_cor
+  )
+
 
 # Handle regions with no credible sets
 if (is.null(cs$cs) || length(cs$cs) == 0) {
