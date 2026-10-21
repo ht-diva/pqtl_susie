@@ -488,6 +488,8 @@ data_counts <- data.frame(
   "ld_from_X"      = compute_ld_from_X,
   "ld_size_mg"     = ld_size,
   "lambda"         = lambda,
+  "susie_converged"= NA_character_,
+  "susie_niter"    = NA_character_,
   "cs_attainable"  = NA_character_,
   "cs_remained"    = NA_character_,
   "lambda_warning" = warntxt,
@@ -520,8 +522,30 @@ res_rss <- tryCatch(
 
 message("🎉 SuSiE completed.")
 
+
 #----------------------------------------#
-# -----    Extract & Save Results  ------
+# -----     Inspect Convergence     -----
+#----------------------------------------#
+
+# Check model convergence
+susie_converged <- isTRUE(res_rss$converged)
+susie_niter <- susieR::susie_get_niter(res_rss)
+
+if (!susie_converged) {
+  warning(
+    "⚠️ SuSiE did NOT converge after ", susie_niter, " iterations."
+  )
+  } else {
+    message("✅ SuSiE converged after ", susie_niter, " iterations.")
+  }
+
+
+# Append to report
+data_counts$susie_converged <- susie_converged
+data_counts$susie_niter <- susie_niter
+
+#----------------------------------------#
+# -----    Extract Credible Sets    -----
 #----------------------------------------#
 
 # full model summary
@@ -550,6 +574,9 @@ message(
   susie_min_abs_cor
   )
 
+#----------------------------------------#
+# -----    Shape Results & Charts   -----
+#----------------------------------------#
 
 # Handle regions with no credible sets
 if (is.null(cs$cs) || length(cs$cs) == 0) {
