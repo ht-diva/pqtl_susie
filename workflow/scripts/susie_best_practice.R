@@ -303,8 +303,17 @@ if (compute_ld_from_X) {
 # Number of variants in GWAS
 n_snp_sumstat <- nrow(sumstat)
 
-# Subset both datasets to common SNPs
-sumstat <- sumstat[sumstat$SNPID %in% common_snps, ]
+# Subset GWAS to shared variants
+sumstat <- sumstat[
+  match(common_snps, sumstat$SNPID),
+  ,
+  drop = FALSE
+  ]
+
+stopifnot(
+  identical(sumstat$SNPID, colnames(R)),
+  identical(rownames(R), colnames(R))
+)
 
 message("✅ Overlapping SNPs found: ", n_snp_common)
 message("✅ GWAS & LD were limited to common SNPs.")
