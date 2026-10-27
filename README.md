@@ -53,32 +53,37 @@ Output table indicates what to expect from the pipeline.
 #### 1. Characteristics of the genomic regions
 
 Table: `combined_reports.tsv`
-|seqid        |locus                    |nsample_pgen |nvar_pgen | nvar_gwas| nvar_shared| nsnps_shared| nindels_shared| nbi_allelic| nmulti_allelic| run_time_min|ld_from_X | ld_size_mg| ld_ev_min| ld_ev_negative|ld_ev_condition      |    lambda|lambda_warning |
-|:------------|:------------------------|:------------|:---------|---------:|-----------:|------------:|--------------:|-----------:|--------------:|------------:|:---------|----------:|---------:|--------------:|:--------------------|---------:|:--------------|
-|seq.10000.28 |chr17_28071104_28415105  |NA |NA | 1905| 1905| 1773| 132| 1905| 0| 0.11|FALSE | 37.04| -6.8e-06|  55|1008693 | 0.0141|NA  |
-|seq.10001.7  |chr17_28265920_28413121  |NA |NA | 1348| 1348| 1262|  86| 1348| 0| 0.10|FALSE | 18.42| -6.7e-06|  45|6763316 | 0.0028|NA  |
-|seq.10003.15 |chr19_44883210_44926451  |NA |NA | 1644| 1644| 1540| 104| 1644| 0| 0.10|FALSE | 27.45| -4.6e-06|  45|1107961 | 0.0020|NA             |
-|seq.10006.25 |chr9_114069727_114069727 |NA |NA | 1222| 1222| 1161|  61| 1222| 0| 0.11|FALSE | 15.05| -1.3e-06|  21|3412773 | 0.0022|NA  |
-|seq.10008.43 |chr1_169330603_169552615 |NA |NA | 2231| 2231| 2062| 169| 2231| 0| 0.24|FALSE | 49.36| -1.1e-05| 224|4287335 | 0.0001|NA  |
+|seqid        |locus                    |nsample_pgen |nvar_pgen | nvar_gwas| nvar_shared| nsnps_shared| nindels_shared| nbi_allelic| nmulti_allelic| run_time_min|ld_from_X | ld_size_mg| lambda | susie_converged | susie_niter | cs_attainable| cs_remained |lambda_warning |susie_warning|
+|:------------|:-----------------------|:-----|:-----|-----:|-----:|-----:|-----:|-----:|-----:|-----:|:-----|-----:|-----:|-----:|:-----|:-----|-----:|:-------------|:-----|
+|seq.10460.1 |chr1_200795068_203437639 |NA |NA | 1905| 1905| 1773| 132| 1905| 0| 0.11|FALSE | 37.04| 0.0141| TRUE |18|11|5| warning message |NA  |
+|seq.10512.13 |chr22_36851809_37058505 |NA |NA | 1348| 1348| 1262|  86| 1348| 0| 0.10|FALSE | 18.42| 0.0028| TRUE |13|6|3| warning message |NA  |
+|seq.13268.45 |chr2_20935300_21238858  |NA |NA | 1644| 1644| 1540| 104| 1644| 0| 0.10|FALSE | 27.45| 0.0020| TRUE |5|9|0| warning message |NA  |
+|seq.10606.34 |chr2_89119570_96189561  |NA |NA | 1222| 1222| 1161|  61| 1222| 0| 0.11|FALSE | 15.05| 0.0022| TRUE |36|4|2| warning message |NA  |
+
 
 Description of the reported features:
 |Column          | Description                             |
 |:---------------|:----------------------------------------|
-|seqid           |                                         |
-|locus           |                                         |
-|nsample_pgen    |                                         |
-|nvar_pgen       |                                         |
-|nvar_gwas       |                                         |
-|nvar_shared     |                                         |
-|nsnps_shared    |                                         |
-|nindels_shared  |                                         |
-|nbi_allelic     |                                         |
-|nmulti_allelic  |                                         |
-|run_time_min    |                                         |
-|ld_from_X       |                                         |
-|ld_size_mg      |                                         |
-|lambda          | Index value for LD-GWAS mismatch, [0,1) |
-|lambda_warning  |                                         |
+|seqid           | Phenotype ID                            |
+|locus           | Region ID (CHR_START_END)               |
+|nsample_pgen    | Number of individuals in genotype file  |
+|nvar_pgen       | Number of variants in genotype file     |
+|nvar_gwas       | Number of variants in GWAS sumstats     |
+|nvar_shared     | Number of variants shared across genotype and GWAS |
+|nsnps_shared    | Number of SNPs shared across genotype and GWAS     |
+|nindels_shared  | Number of insertion/deletion variants shared across genotype and GWAS |
+|nbi_allelic     | Number of bi-allelic variants shared across genotype and GWAS    |
+|nmulti_allelic  | Number of multi-allelic variants shared across genotype and GWAS |
+|run_time_min    | Run time since loading data to fine-mapping and storing results  |
+|ld_from_X       | TRUE/FALSE, TRUE whether LD matrix is computed internally using R-correlation, FALSE if using pre-computed LD |
+|ld_size_mg      | Size of pre-computed LD matrix (mega bytes)                  |
+|lambda          | Index value for LD-GWAS mismatch, [0,1)                      |
+|susie_converged | TRUE/FALSE, TRUE whether susie model converged               |
+|susie_niter     | Number of iterations needed for susie model to converge      |
+|cs_attainable   | Number of credible sets attainable in the region             |
+|cs_remained     | Number of credible sets left after in-built impurity filters |
+|lambda_warning  | Any warning message once computing lambda metric             |
+|susie_warning   | Any warning message once fitting SuSiE model                 |
 
 
 #### 2. The 99% credible sets for each fine-mapped genomic region
@@ -100,10 +105,11 @@ Description of the reported features:
 #### 3. GWAS sumstats of the credible sets
 Table: `combined_cssums.tsv`
 
-|GWAS columns | cs_id | PIP  |
-|-------------| ----- | ---- |
-|             |       |      |
-|             |       |      |
+| seqid       | locus                  | GWAS columns | cs_id | PIP  |
+|:------------|:-----------------------|--------------| ----- | ---- |
+|seq.10460.1  |chr1_200795068_203437639|    . . .     |   .   |  .   |
+|seq.10512.13 |chr22_36851809_37058505 |    . . .     |   .   |  .   |
+|seq.10606.34 |chr2_89119570_96189561  |    . . .     |   .   |  .   |
 
 
 #### 6. Overview of SuSiE results
