@@ -552,6 +552,7 @@ data_counts$susie_niter <- susie_niter
 full_res <- summary(res_rss)
 cs   <- full_res$cs    # containing CS impurity indices
 vars <- full_res$vars  # containing CS Posterior Inclusion Probabilities
+has_cs <- !is.null(cs$cs) && length(cs$cs) > 0   # whether identified any CS or not
 
 # Credible sets
 #cs <- susie_get_cs(res_rss, X = NULL) # issue #257: generates more credible sets as it applies NO impurity filter
@@ -579,7 +580,7 @@ message(
 #----------------------------------------#
 
 # Handle regions with no credible sets
-if (is.null(cs$cs) || length(cs$cs) == 0) {
+if (!has_cs) {
   message("⚠️ No credible sets found for region ", locuseq)
   
   # create a fake GWAS summary
