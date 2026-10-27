@@ -637,7 +637,13 @@ if (!has_cs) {
     cs_summary <- sumstat %>%
       left_join(snps_pip, by = "SNPID") %>%
       left_join(cs[1:4], join_by(cs_id == cs)) %>% # append CS characteristics to sumstat
-      filter(cs_id > 0)
+      dplyr::filter(cs_id > 0) %>%
+      dplyr::mutate(
+        seqid = tag_seqid, # store seqid and locus in CS list
+        locus = tag_locus
+      ) %>%
+      dplyr::relocate(seqid, locus)
+    
     
     cs_sum_plot <- cs_summary %>% mutate(
       cs_id = factor(
@@ -647,21 +653,22 @@ if (!has_cs) {
         ordered = TRUE
       ))
     
+    
     # list of CS variants
     cs_list <- cs_summary %>%
-      summarize(
+      dplyr::summarize(
         cs_snps = paste(SNPID, collapse = ","),
-        .by = cs_id
+        .by = c(seqid, locus, cs_id)
         ) %>%
       full_join(
         cs,
         join_by(cs_id == cs)) %>% # add impurity indices
-      mutate(
-        seqid = tag_seqid, # store seqid and locus in CS list
-        locus = tag_locus,
+      dplyr::mutate(
         ncs = str_count(variable, ",") + 1  # number of variants in each set
       ) %>% # only removed 'variable', indicating CS indices
-      select(seqid, locus, cs_id, cs_log10bf, cs_avg_r2, cs_min_r2, ncs, cs_snps)
+      dplyr::select(
+        seqid, locus, cs_id, cs_log10bf, cs_avg_r2, cs_min_r2, ncs, cs_snps
+        )
     
     
     # plot credible sets
